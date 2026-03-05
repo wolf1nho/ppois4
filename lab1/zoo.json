@@ -1,0 +1,162 @@
+{
+    "name": "Zooland",
+    "enclosures": [
+        {
+            "type": "vsevse",
+            "animals": [
+                {
+                    "name": "rev",
+                    "type": "verv",
+                    "id": 3
+                }
+            ],
+            "feeds": [
+                {
+                    "food": "bedrber",
+                    "date": "04.04.2026 13:45"
+                }
+            ],
+            "id": 1
+        },
+        {
+            "type": "vdrvdr",
+            "animals": [],
+            "feeds": [],
+            "id": 2
+        },
+        {
+            "type": "cdsc",
+            "animals": [],
+            "feeds": [],
+            "id": 4
+        },
+        {
+            "type": "0",
+            "animals": [],
+            "feeds": [],
+            "id": 9
+        }
+    ],
+    "vets": [
+        {
+            "name": "мккм",
+            "specialisation": "укиыкв",
+            "id": 10
+        }
+    ],
+    "vet logs": [
+        {
+            "animal id": 3,
+            "vet id": 5,
+            "conclusion": "здоров",
+            "date": "02.03.2026 01:47:38"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:01:59"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:02:21"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "болен",
+            "date": "06.03.2026 00:02:22"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:02:24"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:02:24"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:02:26"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "06.03.2026 00:02:27"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "болен",
+            "date": "06.03.2026 00:02:29"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "болен",
+            "date": "06.03.2026 00:02:30"
+        }
+    ],
+    "guides": [
+        {
+            "name": "csec",
+            "languages": "verv, vredv",
+            "id": 6
+        }
+    ],
+    "expositions": [
+        {
+            "name": "ver",
+            "description": "nvcuerwn",
+            "enclosure ids": [],
+            "id": 8
+        },
+        {
+            "name": "мкуам",
+            "description": "сцус",
+            "enclosure ids": [],
+            "id": 9
+        }
+    ],
+    "tours": [
+        {
+            "exposition id": 8,
+            "tour guide id": 6,
+            "date": "20.03.2026 14:00",
+            "visitors": [],
+            "max visitors": 2
+        },
+        {
+            "exposition id": 9,
+            "tour guide id": 6,
+            "date": "24.05.2026 20:00",
+            "visitors": [],
+            "max visitors": 2
+        }
+    ],
+    "events": [
+        {
+            "name": "brege",
+            "description": "cweve",
+            "max visitors": 2,
+            "visitors": [
+                {
+                    "name": "cesc",
+                    "birth year": 2024,
+                    "gender": "м"
+                }
+            ],
+            "date": "23.04.2026 10:40"
+        }
+    ],
+    "id counter": 10
+}
