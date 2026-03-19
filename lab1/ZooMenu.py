@@ -766,7 +766,11 @@ class ZooMenu:
             return
         
         for i, event in enumerate(self.zoo._events, start=1):
-            print(f"Мероприятие №{i}. {event.get_info()}")
+            info = f"Мероприятие: {event.get_name()}\n"
+            info += f"Описание: {event.get_description()}\n" 
+            info += f"Дата: {event.get_date().strftime('%d.%m.%Y %H:%M')}\n"
+            info += f"Посетителей: {event.get_visitors_count()}/{event.get_max_visitors()}"
+            print(f"\n№{i}. {info}")
     
     def choose_event(self):
         if self.zoo.get_events():

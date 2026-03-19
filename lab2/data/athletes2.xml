@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<athletes>
+  <athlete>
+    <name>Волкович</name>
+    <sport>Футбол</sport>
+    <position>Нападающий</position>
+    <team>основной</team>
+    <titles>45</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Федун</name>
+    <sport>Плавание</sport>
+    <position>Спринтер</position>
+    <team>n/a</team>
+    <titles>3</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Вашкевич</name>
+    <sport>Хоккей</sport>
+    <position>Вратарь</position>
+    <team>запасной</team>
+    <titles>65</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Конча</name>
+    <sport>Футбол</sport>
+    <position>Полузащитник</position>
+    <team>основной</team>
+    <titles>23</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Кулькин</name>
+    <sport>Теннис</sport>
+    <position>Одиночный игрок</position>
+    <team>n/a</team>
+    <titles>5</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Месси</name>
+    <sport>Футбол</sport>
+    <position>Полузащитник</position>
+    <team>основной</team>
+    <titles>45</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Роналду лох</name>
+    <sport>Футбол</sport>
+    <position>Нападающий</position>
+    <team>основной</team>
+    <titles>38</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+</athletes>
