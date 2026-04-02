@@ -1,105 +1,123 @@
 from src.model.Athlete import Athlete
+from src.model.AthleteModel import AthleteModel
+from src.view.AddAthlete import AddAthleteDialog
+from src.view.EditDialog import EditAthleteDialog
+from src.model.Athlete import Athlete
+from src.view.SearchDialog import SearchDialog
+from src.view.DeleteDialog import DeleteAthleteDialog
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QTableWidgetItem,
-    QFileDialog,
+    QDialog,
     QMessageBox,
-    QDialog
-)
-import xml.sax
-import xml.dom.minidom
-from src.controller.AthleteHandler import AthleteHandler
+    QFileDialog
+    )
+from src.controller.Paginator import Paginator
 
 class AthleteController:
-    def __init__(self, view = None):
-        self.notes = []
+    def __init__(self, model = None, view = None):
         self.view = view
+        self.view.controller = self
+        self.paginator: Paginator = view.paginator
+        self.model: AthleteModel = model
+        self.view.connect_buttons(self)
 
-    def add(self, athlete):
-        self.notes.append(athlete)
-
-    def handle_import(self, file_path):
-        handler = AthleteHandler()
-        parser = xml.sax.make_parser()
-        parser.setContentHandler(handler)
-        parser.parse(file_path)
-        self.notes = handler.athletes
-    
-    def handle_export(self, file_path):
-        # 1. Получаем данные из модели
-        athletes = self.notes
-
-        doc = xml.dom.minidom.Document()
-
-        root_element = doc.createElement('athletes')
-        doc.appendChild(root_element)
-
-        def add_text_node(parent, tag_name, value):
-            child = doc.createElement(tag_name)
-            text = doc.createTextNode(str(value))
-            child.appendChild(text)
-            parent.appendChild(child)
-
-        for athlete in athletes:
-            athlete_node = doc.createElement('athlete')
-            root_element.appendChild(athlete_node)
-
-            add_text_node(athlete_node, 'name', athlete.name)
-            add_text_node(athlete_node, 'sport', athlete.sport)
-            add_text_node(athlete_node, 'position', athlete.position)
-            add_text_node(athlete_node, 'team', athlete.team)
-            add_text_node(athlete_node, 'titles', athlete.titles)
-            add_text_node(athlete_node, 'rank', athlete.rank)
-
-        # 4. Запись в файл
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(doc.toprettyxml(indent="  "))
-
-    def search(self, search_params):
-        filtered_athletes = []
-        name = search_params["name"].lower()
-        sport = search_params["sport"].lower()
-        min_t = search_params["min_titles"]
-        max_t = search_params["max_titles"]
-        rank = search_params["rank"]
-        for athlete in self.notes:
-            match_name = name in athlete.name.lower()
-            match_sport = sport in athlete.sport.lower()
+    def handle_add(self):
+        dialog = AddAthleteDialog(self.view)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            data = dialog.get_data()
             
-            nums = ''.join(filter(str.isdigit, athlete.titles))
-            count = int(nums) if nums else 0
-            match_titles = min_t <= count <= max_t
+            if not data["name"].strip():
+                QMessageBox.warning(self.view, "Ошибка", "ФИО не может быть пустым!")
+                return
+            if not data["titles"].strip():
+                QMessageBox.warning(self.view, "Ошибка", "Количество титулов не может быть пустым!")
+                return
+
+            new_athlete = Athlete(
+                data["name"], data["sport"], data["position"],
+                data["team"], data["titles"], data["rank"]
+            )
+        
+            self.model.add(new_athlete)
+            self.paginator.set_data(self.model.get_data())
+            self.paginator.update_table()
+
+    def handle_edit(self):
+        row_in_table = self.view.get_selected_row()
+        if row_in_table < 0:
+            QMessageBox.warning(self.view, "Ошибка", "Выберите запись для редактирования!")
+            return
+
+        page_size = self.view.get_page_size()
+
+        athlete = self.paginator.get_athlete(self.paginator.get_current_page(), page_size, row_in_table)
+
+        dialog = EditAthleteDialog(self.view)
+        dialog.set_data(athlete)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            new_data = dialog.get_data()
+
+            athlete.name = new_data["name"]
+            athlete.sport = new_data["sport"]
+            athlete.position = new_data["position"]
+            athlete.team = new_data["team"]
+            athlete.titles = new_data["titles"]
+            athlete.rank = new_data["rank"]
+
+            self.paginator.update_table()
+
+    def handle_search(self):
+        dialog = SearchDialog(self.model.search, self.model.delete, self.view)
+        dialog.exec()
+        self.paginator.update_table()
+
+    def handle_delete_selected(self):
+        row_in_table = self.view.get_selected_row()
+        if row_in_table < 0:
+            QMessageBox.warning(self.view, "Внимание", "Выберите спортсмена для удаления!")
+            return
+
+        page_size = self.view.get_page_size()
+
+        athlete = self.paginator.get_athlete(self.paginator.current_page, page_size, row_in_table)
+
+        ans = QMessageBox.question(self.view, "Подтверждение", 
+                                 f"Удалить спортсмена {athlete.name} из базы?",
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        
+        if ans == QMessageBox.StandardButton.Yes:
+            self.model.delete(athlete)
             
-            match_rank = (rank == "Любой" or rank == athlete.rank)
+            self.paginator.update_table()
+            
+            QMessageBox.information(self.view, "Успех", "Запись удалена из базы.")
 
-            if match_name and match_sport and match_titles and match_rank:
-                filtered_athletes.append(athlete)
-        return filtered_athletes
+    def handle_delete(self):
+        dialog = DeleteAthleteDialog(self.model.delete_searched, self.view)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            if dialog.deleted_notes > 0:
+                self.paginator.update_table()
+                QMessageBox.information(self.view, "Результат", f"Удалено записей: {dialog.deleted_notes}")
+            else:
+                QMessageBox.warning(self.view, "Результат", "Записей по данным условиям не найдено.")
+        
 
-    def delete(self, athlete):
-        self.notes.remove(athlete)
+    def handle_import(self):
+        file_path, _ = QFileDialog.getOpenFileName(self.view, "Загрузить данные", "", "XML Files (*.xml)")
+        if file_path:
+            try:
+                self.model.handle_import(file_path)
+                self.paginator.set_data(self.model.get_data())
+                self.paginator.update_table()
+                QMessageBox.information(self.view, "Успех", f"Загружено {len(self.model.get_data())} записей.")
+            except Exception as e:
+                QMessageBox.critical(self.view, "Ошибка", f"Не удалось прочитать файл:\n{str(e)}")
 
-    def delete_searched(self, search_params):
-        deleted_notes = 0
-        name = search_params["name"].lower()
-        sport = search_params["sport"].lower()
-        min_t = search_params["min_titles"]
-        max_t = search_params["max_titles"]
-        rank = search_params["rank"]
-        for i in range(len(self.notes) - 1, -1, -1):
-            athlete = self.notes[i]
-
-            match_name = name in athlete.name.lower()
-            match_sport = sport in athlete.sport.lower()
-
-            nums = ''.join(filter(str.isdigit, athlete.titles))
-            count = int(nums) if nums else 0
-            match_titles = min_t <= count <= max_t
-
-            match_rank = (rank == "Любой" or rank == athlete.rank)
-
-            if match_name and match_sport and match_titles and match_rank:
-                self.notes.pop(i)
-                deleted_notes += 1
-
-        return deleted_notes
+    def handle_export(self):
+        file_path, _ = QFileDialog.getSaveFileName(self.view, "Сохранить данные", "", "XML Files (*.xml)")
+        if file_path:
+            try:
+                self.model.handle_export(file_path)
+                QMessageBox.information(self.view, "Успех", "Данные успешно сохранены.")
+            except Exception as e:
+                QMessageBox.critical(self.view, "Ошибка", f"Не удалось сохранить файл:\n{str(e)}")

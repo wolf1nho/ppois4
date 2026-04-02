@@ -1,12 +1,5 @@
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QVBoxLayout,
-    QLabel,
-    QWidget,
     QTableWidget,
-    QHBoxLayout,
-    QPushButton,
-    QComboBox,
     QTableWidgetItem
     )
 

@@ -1,7 +1,3 @@
-from PyQt6.QtWidgets import (QDialog, QFormLayout, QLineEdit, 
-                             QComboBox, QDialogButtonBox, QVBoxLayout)
-
-from src.view.enums import SPORTS_CONFIG
 from src.view.AddAthlete import AddAthleteDialog
 
 class EditAthleteDialog(AddAthleteDialog):

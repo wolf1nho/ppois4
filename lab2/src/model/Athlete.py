@@ -1,11 +1,9 @@
-
-
 class Athlete:
-    def __init__(self, name, sport, position, team, titles, rank):
-        self.name = name
-        self.sport = sport
-        self.position = position
-        self.team = team
-        self.titles = titles
-        self.rank = rank
+    def __init__(self, name: str, sport: str, position: str, team: str, titles: int, rank: str):
+        self.name: str = name
+        self.sport: str = sport
+        self.position: str = position
+        self.team: str = team
+        self.titles: str = titles
+        self.rank: str = rank
 

@@ -1,12 +1,7 @@
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QVBoxLayout,
     QLabel,
-    QWidget,
-    QTableWidget,
     QHBoxLayout,
     QPushButton,
-    QComboBox,
     QSpinBox
     )
 
@@ -48,5 +43,5 @@ class PaginationPanel(QHBoxLayout):
     def update(self, current_page, total_pages, total_notes):
         self.page_info.setText(f"Страница {current_page}/{total_pages} (Всего: {total_notes})")
         
-    def get_page_size(self):
+    def get_page_size(self) -> int:
         return self.page_size.value()

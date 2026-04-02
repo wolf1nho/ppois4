@@ -2,13 +2,16 @@ import sys
 from PyQt6.QtWidgets import QApplication
 from src.view.MainWindow import MainWindow
 from src.controller.AthleteController import AthleteController
+from src.model.AthleteModel import AthleteModel
 
 def main():
     app = QApplication(sys.argv)
 
-    controller = AthleteController()
+    model = AthleteModel()
 
-    window = MainWindow(controller)
+    window = MainWindow()
+
+    controller = AthleteController(model, window)
 
     controller.view = window
 

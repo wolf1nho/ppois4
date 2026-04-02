@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QComboBox,
     QPushButton,
-    QVBoxLayout)
+    QVBoxLayout
+    )
 
 from PyQt6.QtGui import QIntValidator
 from src.view.enums import SPORTS_CONFIG
@@ -56,26 +57,21 @@ class AddAthleteDialog(QDialog):
     def update_dependencies(self):
         sport = self.sport_combo.currentText()
 
-        # Получаем настройки для выбранного спорта (пустой конфиг по умолчанию)
         config = SPORTS_CONFIG.get(sport, {"positions": ["n/a"], "is_team": False})
 
-        # 1. Обновляем комбобокс позиций
         self.pos_combo.clear()
         self.pos_combo.addItems(config["positions"])
 
-        # 2. Логика управления полем состава (Team/Solo)
         is_team_sport = config["is_team"]
 
         if not is_team_sport:
-            # Если спорт одиночный
             self.team_combo.setCurrentText("n/a")
             self.team_combo.setEnabled(False)
             self.pos_combo.setEnabled(False)
         else:
-            # Если спорт командный
             self.team_combo.setEnabled(True)
             self.pos_combo.setEnabled(True)
-            # Если до этого стояло "n/a", сбрасываем на первый доступный вариант (например, "Основной")
+
             if self.team_combo.currentText() == "n/a":
                 self.team_combo.setCurrentIndex(0)
 

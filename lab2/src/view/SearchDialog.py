@@ -7,9 +7,6 @@ from PyQt6.QtWidgets import (
     QSpinBox,
     QComboBox,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QGroupBox,
     QLabel,
     QMessageBox
@@ -80,7 +77,7 @@ class SearchDialog(QDialog):
 
         self.perform_search()
 
-    def get_search_params (self):
+    def get_search_params(self):
         return {
             "name": self.name_input.text().lower(),
             "sport": self.sport_input.text().lower(),
@@ -92,6 +89,7 @@ class SearchDialog(QDialog):
     def perform_search(self):
         self.current_page = 1
         self.paginator.set_data(self.search_function(self.get_search_params()))
+        self.paginator.update_table()
 
     def update_table(self):
         self.perform_search()

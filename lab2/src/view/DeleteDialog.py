@@ -7,18 +7,15 @@ from PyQt6.QtWidgets import (
     QSpinBox,
     QComboBox,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QGroupBox,
-    QLabel,
-    QMessageBox
+    QLabel
     )
 
 class DeleteAthleteDialog(QDialog):
     def __init__(self, delete_function, parent=None):
         super().__init__(parent)
         self.delete_function = delete_function
+        self.deleted_notes = 0
         self.setWindowTitle("Поиск спортсменов")
         #self.setMinimumWidth(500)
 
@@ -69,8 +66,8 @@ class DeleteAthleteDialog(QDialog):
 
     def perform(self):
         self.current_page = 1
-        deleted_notes = self.delete_function(self.get_search_params())
-        self.done(deleted_notes)
+        self.deleted_notes = self.delete_function(self.get_search_params())
+        self.accept()
 
     def clear_input(self):
         self.name_input.clear()

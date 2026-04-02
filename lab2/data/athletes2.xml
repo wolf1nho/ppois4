@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <athletes>
   <athlete>
-    <name>Волкович</name>
+    <name>Игуаин</name>
     <sport>Футбол</sport>
     <position>Нападающий</position>
     <team>основной</team>
@@ -9,7 +9,7 @@
     <rank>Мастер спорта</rank>
   </athlete>
   <athlete>
-    <name>Федун</name>
+    <name>Фелпс</name>
     <sport>Плавание</sport>
     <position>Спринтер</position>
     <team>n/a</team>
@@ -17,7 +17,7 @@
     <rank>3-й разряд</rank>
   </athlete>
   <athlete>
-    <name>Вашкевич</name>
+    <name>Овечкин</name>
     <sport>Хоккей</sport>
     <position>Вратарь</position>
     <team>запасной</team>
@@ -25,7 +25,7 @@
     <rank>КМС</rank>
   </athlete>
   <athlete>
-    <name>Конча</name>
+    <name>Ямаль</name>
     <sport>Футбол</sport>
     <position>Полузащитник</position>
     <team>основной</team>
@@ -33,9 +33,9 @@
     <rank>1-й юношеский</rank>
   </athlete>
   <athlete>
-    <name>Кулькин</name>
+    <name>Федерер</name>
     <sport>Теннис</sport>
-    <position>Одиночный игрок</position>
+    <position>n/a</position>
     <team>n/a</team>
     <titles>5</titles>
     <rank>2-й разряд</rank>
@@ -49,7 +49,7 @@
     <rank>Мастер спорта</rank>
   </athlete>
   <athlete>
-    <name>Роналду лох</name>
+    <name>Роналду</name>
     <sport>Футбол</sport>
     <position>Нападающий</position>
     <team>основной</team>

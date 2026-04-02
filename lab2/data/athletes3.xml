@@ -1,0 +1,403 @@
+<?xml version="1.0" ?>
+<athletes>
+  <athlete>
+    <name>Мельников Степан Игоревич</name>
+    <sport>Футбол</sport>
+    <position>Защитник</position>
+    <team>Основной</team>
+    <titles>2</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Дмитриева Лариса Юрьевна</name>
+    <sport>Волейбол</sport>
+    <position>Диагональный</position>
+    <team>Основной</team>
+    <titles>6</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Антонов Егор Павлович</name>
+    <sport>Хоккей</sport>
+    <position>Центральный нападающий</position>
+    <team>Основной</team>
+    <titles>14</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Карпов Денис Андреевич</name>
+    <sport>Баскетбол</sport>
+    <position>Разыгрывающий</position>
+    <team>Запасной</team>
+    <titles>0</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Власова Инна Сергеевна</name>
+    <sport>Теннис</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>22</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Борисов Илья Валерьевич</name>
+    <sport>Бокс</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>3</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Матвеев Артур Глебович</name>
+    <sport>Гандбол</sport>
+    <position>Крайний</position>
+    <team>Основной</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Тихонов Петр Сергеевич</name>
+    <sport>Плавание</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>5</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Лукин Константин Артемович</name>
+    <sport>Водное поло</sport>
+    <position>Подвижный нападающий</position>
+    <team>Запасной</team>
+    <titles>0</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Медведев Даниил Александрович</name>
+    <sport>Формула-1</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>0</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Фомин Алексей Дмитриевич</name>
+    <sport>Регби</sport>
+    <position>Хукер</position>
+    <team>Основной</team>
+    <titles>4</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Щербакова Анна Станиславовна</name>
+    <sport>Фигурное катание</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>11</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Пономарев Иван Романович</name>
+    <sport>Шахматы</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>18</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Григорьева Светлана Алексеевна</name>
+    <sport>Гимнастика</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Королев Артем Витальевич</name>
+    <sport>Бейсбол</sport>
+    <position>Аутфилдер</position>
+    <team>Основной</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Денисов Руслан Кириллович</name>
+    <sport>Американский футбол</sport>
+    <position>Раннинбек</position>
+    <team>Основной</team>
+    <titles>3</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Миронова Елена Павловна</name>
+    <sport>Фехтование</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>7</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Сидоров Глеб Максимович</name>
+    <sport>Гребля</sport>
+    <position>Гребец</position>
+    <team>Основной</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Егоров Марат Андреевич</name>
+    <sport>Легкая атлетика</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>9</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Коновалов Роман Семенович</name>
+    <sport>Велоспорт</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>0</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Шестаков Владимир Ильич</name>
+    <sport>Биатлон</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>6</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Казакова Нина Петровна</name>
+    <sport>Настольный теннис</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Уваров Кирилл Сергеевич</name>
+    <sport>Бадминтон</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Гордеев Виктор Михайлович</name>
+    <sport>Бильярд</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>13</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Логинова Дарья Юрьевна</name>
+    <sport>Стрельба из лука</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Савин Артемий Игоревич</name>
+    <sport>Футбол</sport>
+    <position>Полузащитник</position>
+    <team>Запасной</team>
+    <titles>0</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Колесникова Мария Кирилловна</name>
+    <sport>Волейбол</sport>
+    <position>Центральный блокирующий</position>
+    <team>Основной</team>
+    <titles>5</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Гусев Андрей Леонидович</name>
+    <sport>Хоккей</sport>
+    <position>Защитник</position>
+    <team>Запасной</team>
+    <titles>2</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Наумов Валентин Сергеевич</name>
+    <sport>Баскетбол</sport>
+    <position>Атакующий защитник</position>
+    <team>Основной</team>
+    <titles>3</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Третьяков Олег Викторович</name>
+    <sport>Гандбол</sport>
+    <position>Полусредний</position>
+    <team>Основной</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Некрасов Илья Дмитриевич</name>
+    <sport>Водное поло</sport>
+    <position>Центральный нападающий</position>
+    <team>Основной</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Беляева Ксения Андреевна</name>
+    <sport>Плавание</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>7</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Румянцев Станислав Борисович</name>
+    <sport>Бокс</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Доронин Павел Михайлович</name>
+    <sport>Регби</sport>
+    <position>Лок</position>
+    <team>Основной</team>
+    <titles>5</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Зуева Надежда Викторовна</name>
+    <sport>Теннис</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>8</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Одинцов Юрий Романович</name>
+    <sport>Бейсбол</sport>
+    <position>Инфилдер</position>
+    <team>Запасной</team>
+    <titles>0</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Бирюков Леонид Петрович</name>
+    <sport>Американский футбол</sport>
+    <position>Ресивер</position>
+    <team>Основной</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Акимова Вероника Павловна</name>
+    <sport>Фигурное катание</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Капустин Семен Николаевич</name>
+    <sport>Гребля</sport>
+    <position>Гребец</position>
+    <team>Запасной</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Карпов Анатолий Евгеньевич</name>
+    <sport>Шахматы</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>25</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Фролов Марк Дмитриевич</name>
+    <sport>Велоспорт</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>3</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Терентьева Анна Кирилловна</name>
+    <sport>Биатлон</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Соболева Кристина Львовна</name>
+    <sport>Гимнастика</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>6</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Ларионов Никита Олегович</name>
+    <sport>Фехтование</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+  <athlete>
+    <name>Ермаков Григорий Викторович</name>
+    <sport>Футбол</sport>
+    <position>Вратарь</position>
+    <team>Запасной</team>
+    <titles>1</titles>
+    <rank>2-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Родионова Инна Михайловна</name>
+    <sport>Волейбол</sport>
+    <position>Доигровщик</position>
+    <team>Основной</team>
+    <titles>3</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Поляков Степан Аркадьевич</name>
+    <sport>Хоккей</sport>
+    <position>Крайний нападающий</position>
+    <team>Основной</team>
+    <titles>8</titles>
+    <rank>Мастер спорта</rank>
+  </athlete>
+  <athlete>
+    <name>Дроздов Владимир Кириллович</name>
+    <sport>Баскетбол</sport>
+    <position>Тяжелый форвард</position>
+    <team>Основной</team>
+    <titles>4</titles>
+    <rank>КМС</rank>
+  </athlete>
+  <athlete>
+    <name>Самсонова Жанна Игоревна</name>
+    <sport>Настольный теннис</sport>
+    <position>n/a</position>
+    <team>n/a</team>
+    <titles>0</titles>
+    <rank>3-й разряд</rank>
+  </athlete>
+  <athlete>
+    <name>Климов Николай Петрович</name>
+    <sport>Регби</sport>
+    <position>Фланкер</position>
+    <team>Основной</team>
+    <titles>2</titles>
+    <rank>1-й юношеский</rank>
+  </athlete>
+</athletes>

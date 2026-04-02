@@ -4,7 +4,7 @@ from src.model.Athlete import Athlete
 class AthleteHandler(xml.sax.ContentHandler):
     def __init__(self):
         super().__init__()
-        self.athletes = []
+        self.athletes: list[Athlete] = []
         self.current_data = ""
         self.p_data = {}
 
