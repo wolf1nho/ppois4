@@ -1,42 +1,47 @@
 import math
+
 import pygame
-from .constants import PLAYER_SPEED, PLAYER_RADIUS, BULLET_SPEED, WIDTH, HEIGHT, MAX_HP, WEAPON_PISTOL, WEAPON_SHOTGUN, WEAPON_SNIPER, WEAPON_AUTOMATIC, WEAPONS
-from .bullet import Bullet
+
+from .constants import KEY_ALIASES, MAX_HP, PLAYER_RADIUS, PLAYER_SPEED, WEAPONS, WeaponType
+from .weapon import create_weapon
 
 
 class Player:
-    def __init__(self, screen):
+    def __init__(self, screen, sounds=None):
         self.screen = screen
+        self.sounds = sounds or {}
         self.x = self.screen.get_width() // 2
         self.y = self.screen.get_height() // 2
         self.hp = MAX_HP
-        self.current_weapon = WEAPON_PISTOL
+        self.radius = PLAYER_RADIUS
+        self.current_weapon = WeaponType.AUTOMATIC
         self.reload_timer = 0.0
-        self.aim_angle = 0.0  # Угол прицела (в радианах)
+        self.aim_angle = 0.0
+        self.arsenal = {weapon_type: create_weapon(weapon_type, stats) for weapon_type, stats in WEAPONS.items()}
 
     def move(self, dt, keys):
         dx = 0
         dy = 0
-        if keys[pygame.K_a] or keys[1092]:  # 'ф' = 1092
+
+        if keys[pygame.K_a] or keys[KEY_ALIASES["left_ru"]]:
             dx -= 1
-        if keys[pygame.K_d] or keys[1074]:  # 'в' = 1074
+        if keys[pygame.K_d] or keys[KEY_ALIASES["right_ru"]]:
             dx += 1
-        if keys[pygame.K_w] or keys[1094]:  # 'ц' = 1094
+        if keys[pygame.K_w] or keys[KEY_ALIASES["up_ru"]]:
             dy -= 1
-        if keys[pygame.K_s] or keys[1099]:  # 'ы' = 1099
+        if keys[pygame.K_s] or keys[KEY_ALIASES["down_ru"]]:
             dy += 1
 
         if dx != 0 or dy != 0:
             if dx != 0 and dy != 0:
-                # Diagonal movement, normalize to maintain speed
                 length = math.hypot(dx, dy)
                 dx /= length
                 dy /= length
             self.x += dx * PLAYER_SPEED * dt
             self.y += dy * PLAYER_SPEED * dt
 
-        self.x = max(PLAYER_RADIUS, min(self.screen.get_width() - PLAYER_RADIUS, self.x))
-        self.y = max(PLAYER_RADIUS, min(self.screen.get_height() - PLAYER_RADIUS, self.y))
+        self.x = max(self.radius, min(self.screen.get_width() - self.radius, self.x))
+        self.y = max(self.radius, min(self.screen.get_height() - self.radius, self.y))
 
         if self.reload_timer > 0:
             self.reload_timer -= dt
@@ -46,44 +51,24 @@ class Player:
         self.aim_angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
 
     def shoot(self):
-        weapon = WEAPONS[self.current_weapon]
+        stats = WEAPONS[self.current_weapon]
         if self.reload_timer > 0:
             return []
 
-        dx = math.cos(self.aim_angle)
-        dy = math.sin(self.aim_angle)
-        self.reload_timer = weapon['reload_time']
-
-        bullets = []
-        if self.current_weapon == WEAPON_SHOTGUN:
-            # Shotgun: multiple pellets with spread
-            pellets = weapon['pellets']
-            spread = weapon['spread']
-            for i in range(pellets):
-                angle = self.aim_angle + (i - pellets // 2) * spread / pellets
-                vx = math.cos(angle) * BULLET_SPEED
-                vy = math.sin(angle) * BULLET_SPEED
-                bullets.append(Bullet(self.x, self.y, vx, vy, self.screen, weapon['damage']))
-        elif self.current_weapon == WEAPON_SNIPER:
-            # Sniper: single high-damage bullet
-            vx = dx * weapon['speed']
-            vy = dy * weapon['speed']
-            bullets.append(Bullet(self.x, self.y, vx, vy, self.screen, weapon['damage'], weapon['radius']))
-        elif self.current_weapon == WEAPON_AUTOMATIC:
-            # Automatic: fast fire
-            vx = dx * BULLET_SPEED
-            vy = dy * BULLET_SPEED
-            bullets.append(Bullet(self.x, self.y, vx, vy, self.screen, weapon['damage']))
-        else:  # Pistol
-            vx = dx * BULLET_SPEED
-            vy = dy * BULLET_SPEED
-            bullets.append(Bullet(self.x, self.y, vx, vy, self.screen, weapon['damage']))
-
+        self.reload_timer = stats.reload_time
+        bullets = self.arsenal[self.current_weapon].fire(self.x, self.y, self.aim_angle, self.screen)
+        sound = self.sounds.get(stats.sound_key)
+        if sound:
+            sound.play()
         return bullets
 
     def switch_weapon(self, direction):
-        self.current_weapon = (self.current_weapon + direction) % len(WEAPONS)
+        weapon_types = list(WEAPONS.keys())
+        current_index = weapon_types.index(self.current_weapon)
+        new_index = (current_index + direction) % len(weapon_types)
+        self.current_weapon = weapon_types[new_index]
 
-    def select_weapon(self, weapon_id):
-        if 0 <= weapon_id < len(WEAPONS):
-            self.current_weapon = weapon_id
+    def select_weapon(self, weapon_index):
+        weapon_types = list(WEAPONS.keys())
+        if 0 <= weapon_index < len(weapon_types):
+            self.current_weapon = weapon_types[weapon_index]

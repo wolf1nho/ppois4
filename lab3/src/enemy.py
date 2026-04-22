@@ -1,6 +1,19 @@
 import math
-from .constants import ENEMY_BASE_SPEED, ENEMY_BULLET_RADIUS, ENEMY_BULLET_SPEED, ENEMY_SHOOT_DISTANCE, ENEMY_TYPES
+
 from .bullet import Bullet
+from .constants import (
+    ENEMY_BASE_SPEED,
+    ENEMY_BULLET_RADIUS,
+    ENEMY_BULLET_SPEED,
+    ENEMY_SHOOT_DISTANCE,
+    ENEMY_TYPES,
+    enemy_bullet_damage_for,
+    enemy_contact_damage_for,
+    enemy_hp_for,
+    enemy_radius_for,
+    enemy_score_for,
+    enemy_shoot_interval_for,
+)
 
 
 class Enemy:
@@ -9,18 +22,18 @@ class Enemy:
         self.x = x
         self.y = y
         self.enemy_type = enemy_type
-        self.name = data["name"]
-        self.max_hp = data["hp"]
+        self.name = data.name
+        self.max_hp = enemy_hp_for(data)
         self.hp = float(self.max_hp)
-        self.radius = data["radius"]
-        self.speed = speed if speed is not None else ENEMY_BASE_SPEED * data["speed_mult"]
-        self.score_value = data["score"]
-        self.contact_damage = data["contact_damage"]
-        self.can_shoot = data["can_shoot"]
-        self.shoot_interval = data["shoot_interval"]
-        self.bullet_damage = data["bullet_damage"]
-        self.color_fill = data["color_fill"]
-        self.color_outline = data["color_outline"]
+        self.radius = enemy_radius_for(data)
+        self.speed = speed if speed is not None else ENEMY_BASE_SPEED * data.speed_mult
+        self.score_value = enemy_score_for(data)
+        self.contact_damage = enemy_contact_damage_for(data)
+        self.can_shoot = data.can_shoot
+        self.shoot_interval = enemy_shoot_interval_for(data)
+        self.bullet_damage = enemy_bullet_damage_for(data)
+        self.color_fill = data.color_fill
+        self.color_outline = data.color_outline
         self.shoot_timer = self.shoot_interval
         self.alive = True
 
