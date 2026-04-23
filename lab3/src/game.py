@@ -62,6 +62,8 @@ class Game:
             "sniper": self.load_sound("assets/awp.mp3"),
             "player_damage": self.load_sound("assets/playerdamagesound.mp3"),
             "new_wave": self.load_sound("assets/nextwave.mp3"),
+            "pickup": self.load_sound("assets/pickup.mp3"),
+            "enemy_death": self.load_sound("assets/enemydeath.mp3")
         }
 
         self.reset()
@@ -94,6 +96,8 @@ class Game:
         self.wave_manager.reset()
 
     def try_spawn_health_pickup(self, x, y, enemy_type):
+        if self.sounds.get("enemy_death"):
+            self.sounds["enemy_death"].play()
         chance = HEALTH_PICKUP_CONFIG.boss_drop_chance if enemy_type == "boss" else HEALTH_PICKUP_CONFIG.drop_chance
         if random.random() > chance:
             return
@@ -117,6 +121,8 @@ class Game:
             if dist <= self.player.radius + pickup.radius:
                 self.player.hp = min(MAX_HP, self.player.hp + pickup.heal_amount)
                 pickup.alive = False
+                if self.sounds.get("pickup"):
+                    self.sounds["pickup"].play()
 
         self.health_pickups = [p for p in self.health_pickups if p.alive]
 

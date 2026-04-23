@@ -4,6 +4,7 @@ class HealthPickup:
         self.y = y
         self.heal_amount = int(heal_amount)
         self.radius = int(radius)
+        self.max_lifetime = float(lifetime)
         self.lifetime = float(lifetime)
         self.alive = True
 

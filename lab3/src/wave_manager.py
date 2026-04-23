@@ -22,7 +22,7 @@ class WaveManager:
         self.wave_active = False
         self.wave_pause_timer = 0.0
         self.wave_queue = []
-        self.wave_banner_timer = self.config.banner_duration
+        self.wave_banner_timer = 0.0
         self.spawn_timer = 0.0
         self.spawn_interval = self.config.spawn_interval_start
         self.difficulty = self.config.difficulty_base
@@ -64,6 +64,7 @@ class WaveManager:
         self.wave_queue = self.build_wave_queue(wave)
         self.wave_active = True
         self.wave_pause_timer = 0.0
+        self.wave_banner_timer = self.config.banner_duration
         self.spawn_timer = 0.0
         self.difficulty = self.config.difficulty_base + (wave - 1) * self.config.difficulty_step
         self.spawn_interval = max(
@@ -91,7 +92,6 @@ class WaveManager:
                     victory = True
                 else:
                     self.wave_pause_timer = self.config.wave_pause
-                    self.wave_banner_timer = self.config.banner_duration
         else:
             if self.wave_pause_timer > 0:
                 self.wave_pause_timer -= dt

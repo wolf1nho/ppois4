@@ -6,7 +6,7 @@ A simple top-down shooter game inspired by Crimsonland, built with Pygame.
 
 1. Install Python 3.x
 2. Install dependencies: `pip install -r requirements.txt`
-3. Run the game: `python main.py`
+3. Run the game: `python3 main.py`
 
 ## Controls
 

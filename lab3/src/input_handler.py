@@ -33,9 +33,6 @@ class InputHandler:
             else:
                 game.running = False
 
-        if game.state == GameState.PLAYING and not game.game_over and event.key in (pygame.K_p, pygame.K_SPACE):
-            game.state = GameState.PAUSED
-
         if game.state == GameState.PLAYING and event.key in (pygame.K_q, KEY_ALIASES["q_ru"]):
             game.player.switch_weapon(-1)
         if game.state == GameState.PLAYING and event.key in (pygame.K_e, KEY_ALIASES["e_ru"]):
@@ -72,7 +69,3 @@ class InputHandler:
                 elif game.pause_selected == 1:
                     game.state = GameState.MENU
                     game.reset()
-
-        if game.state == GameState.PLAYING and game.game_over and event.key in (pygame.K_r, KEY_ALIASES["r_ru"]):
-            game.reset()
-            game.state = GameState.PLAYING

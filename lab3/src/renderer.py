@@ -1,4 +1,5 @@
 import math
+import os
 
 import pygame
 
@@ -12,6 +13,23 @@ class GameRenderer:
         self.big_font = pygame.font.SysFont("consolas", 52)
         self.menu_font = pygame.font.SysFont("consolas", 36)
         self.small_font = pygame.font.SysFont("consolas", 18)
+        self.weapon_slot_font = pygame.font.SysFont("consolas", 16)
+        self.weapon_images = self.load_weapon_images()
+
+    def load_weapon_images(self):
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        image_paths = {
+            "Автомат": "assets/automatic.png",
+            "Дробовик": "assets/shortgun.png",
+            "Снайперка": "assets/awp.png",
+        }
+        loaded = {}
+        for weapon_name, relative_path in image_paths.items():
+            try:
+                loaded[weapon_name] = pygame.image.load(os.path.join(base_dir, relative_path)).convert_alpha()
+            except Exception:
+                loaded[weapon_name] = None
+        return loaded
 
     def draw_background(self):
         sw = self.screen.get_width()
@@ -57,6 +75,15 @@ class GameRenderer:
         cx = int(pickup.x)
         cy = int(pickup.y)
         radius = pickup.radius
+        bar_w = max(26, radius * 3)
+        bar_h = 5
+        bar_x = cx - bar_w // 2
+        bar_y = cy - radius - 14
+        lifetime_ratio = max(0.0, min(1.0, pickup.lifetime / max(0.01, pickup.max_lifetime)))
+
+        pygame.draw.rect(self.screen, (18, 30, 20), (bar_x, bar_y, bar_w, bar_h), border_radius=3)
+        pygame.draw.rect(self.screen, (80, 235, 130), (bar_x, bar_y, int(bar_w * lifetime_ratio), bar_h), border_radius=3)
+        pygame.draw.rect(self.screen, (200, 255, 220), (bar_x, bar_y, bar_w, bar_h), 1, border_radius=3)
 
         pygame.draw.circle(self.screen, (28, 95, 52), (cx, cy), radius + 2)
         pygame.draw.circle(self.screen, (68, 220, 120), (cx, cy), radius)
@@ -71,11 +98,12 @@ class GameRenderer:
         bar_x, bar_y = UI_CONFIG.hp_bar_pos
         bar_w, bar_h = UI_CONFIG.hp_bar_size
         ratio = max(0.0, min(1.0, player_hp / MAX_HP))
-
-        pygame.draw.rect(self.screen, (45, 25, 30), (bar_x, bar_y, bar_w, bar_h), border_radius=6)
+        hp_surface = pygame.Surface((bar_w, bar_h), pygame.SRCALPHA)
+        pygame.draw.rect(hp_surface, (45, 25, 30, 140), (0, 0, bar_w, bar_h), border_radius=6)
         fill_color = (70, 210, 110) if ratio > 0.6 else ((255, 185, 70) if ratio > 0.3 else (230, 70, 70))
-        pygame.draw.rect(self.screen, fill_color, (bar_x, bar_y, int(bar_w * ratio), bar_h), border_radius=6)
-        pygame.draw.rect(self.screen, (235, 235, 235), (bar_x, bar_y, bar_w, bar_h), 2, border_radius=6)
+        pygame.draw.rect(hp_surface, (*fill_color, 190), (0, 0, int(bar_w * ratio), bar_h), border_radius=6)
+        pygame.draw.rect(hp_surface, (235, 235, 235, 210), (0, 0, bar_w, bar_h), 2, border_radius=6)
+        self.screen.blit(hp_surface, (bar_x, bar_y))
 
         hp_text = self.small_font.render(f"HP {int(player_hp)}/{MAX_HP}", True, (245, 245, 245))
         self.screen.blit(hp_text, (bar_x + 8, bar_y + 1))
@@ -105,36 +133,107 @@ class GameRenderer:
             2,
         )
 
+    def draw_weapon_slot(self, x, y, width, height, weapon_name, footer_label, active=False):
+        base_color = (26, 30, 38) if not active else (62, 44, 18)
+        border_color = (110, 130, 160) if not active else (255, 215, 110)
+        text_color = (205, 215, 230) if not active else (255, 235, 170)
+
+        slot_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        slot_surface.fill((0, 0, 0, 0))
+        pygame.draw.rect(slot_surface, (*base_color, 150), (0, 0, width, height), border_radius=10)
+        pygame.draw.rect(slot_surface, (*border_color, 185), (0, 0, width, height), 2, border_radius=10)
+
+        image = self.weapon_images.get(weapon_name)
+        image_box = pygame.Rect(8, 8, width - 16, max(24, height - 48))
+        if image is not None:
+            iw, ih = image.get_size()
+            scale = min(image_box.width / iw, image_box.height / ih)
+            scaled_size = (max(1, int(iw * scale)), max(1, int(ih * scale)))
+            scaled = pygame.transform.smoothscale(image, scaled_size)
+            image_pos = (
+                image_box.x + (image_box.width - scaled_size[0]) // 2,
+                image_box.y + (image_box.height - scaled_size[1]) // 2,
+            )
+            slot_surface.blit(scaled, image_pos)
+        else:
+            pygame.draw.rect(slot_surface, (48, 56, 68), image_box, border_radius=8)
+            fallback = self.small_font.render(weapon_name, True, (230, 230, 230))
+            slot_surface.blit(
+                fallback,
+                (image_box.centerx - fallback.get_width() // 2, image_box.centery - fallback.get_height() // 2),
+            )
+
+        footer_text = self.weapon_slot_font.render(footer_label, True, text_color)
+        name_text = self.weapon_slot_font.render(weapon_name, True, text_color)
+        slot_surface.blit(footer_text, (width // 2 - footer_text.get_width() // 2, height - 38))
+        slot_surface.blit(name_text, (width // 2 - name_text.get_width() // 2, height - 20))
+
+        self.screen.blit(slot_surface, (x, y))
+
+    def draw_weapon_hud(self, player):
+        weapon_types = list(WEAPONS.keys())
+        current_index = weapon_types.index(player.current_weapon)
+        left_weapon = WEAPONS[weapon_types[(current_index - 1) % len(weapon_types)]].name
+        current_weapon = WEAPONS[player.current_weapon].name
+        right_weapon = WEAPONS[weapon_types[(current_index + 1) % len(weapon_types)]].name
+
+        sw = self.screen.get_width()
+        panel_w = 318
+        panel_h = 122
+        panel_x = sw - panel_w - 18
+        panel_y = 12
+
+        panel_surface = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        pygame.draw.rect(panel_surface, (16, 18, 24, 110), (0, 0, panel_w, panel_h), border_radius=16)
+        pygame.draw.rect(panel_surface, (75, 90, 110, 170), (0, 0, panel_w, panel_h), 2, border_radius=16)
+        self.screen.blit(panel_surface, (panel_x, panel_y))
+
+        title = self.small_font.render("ОРУЖИЕ", True, (220, 230, 240))
+        self.screen.blit(title, (panel_x + 16, panel_y + 12))
+
+        side_w = 72
+        main_w = 126
+        slot_h = 72
+        slot_y = panel_y + 34
+
+        self.draw_weapon_slot(panel_x + 12, slot_y, side_w, slot_h, left_weapon, "Q")
+        self.draw_weapon_slot(panel_x + 12 + side_w + 12, slot_y, main_w, slot_h, current_weapon, "СЕЙЧАС", active=True)
+        self.draw_weapon_slot(panel_x + 12 + side_w + 12 + main_w + 12, slot_y, side_w, slot_h, right_weapon, "E")
+
     def draw_hud(self, game):
         self.draw_hp_bar(game.player.hp)
+        self.draw_weapon_hud(game.player)
 
         score_text = self.font.render(f"Счёт: {game.score}", True, (230, 230, 230))
         time_text = self.font.render(f"Время: {game.time_survived:05.1f}", True, (230, 230, 230))
         total_waves = game.wave_manager.config.total_waves
         wave_text = self.font.render(f"Волна: {min(game.wave_manager.current_wave, total_waves)}/{total_waves}", True, (245, 220, 140))
-        pause_text = self.small_font.render("P - пауза", True, (200, 200, 200))
-        weapon_name = WEAPONS[game.player.current_weapon].name
-        weapon_text = self.small_font.render(f"Оружие: {weapon_name}", True, (220, 220, 220))
         switch_text = self.small_font.render("Q/E или 1-3 - смена", True, (200, 200, 200))
-        aim_text = self.small_font.render("Мышь - прицел / ЛКМ - огонь", True, (200, 200, 200))
         pending = game.wave_manager.pending_count(len(game.enemies))
         left_text = self.small_font.render(f"Осталось на волне: {pending}", True, (200, 220, 255))
         boss_text = self.small_font.render("Волна босса", True, (255, 205, 120)) if game.wave_manager.is_boss_wave() else None
 
         left = UI_CONFIG.hud_left
         top = UI_CONFIG.hud_top
-        step = UI_CONFIG.hud_line_gap
+        step = 24
+        info_lines = [score_text, time_text, wave_text, switch_text, left_text]
+        if boss_text is not None:
+            info_lines.append(boss_text)
+
+        info_height = 20 + step * len(info_lines)
+        max_width = max(line.get_width() for line in info_lines) + 24
+        info_surface = pygame.Surface((max_width, info_height), pygame.SRCALPHA)
+        pygame.draw.rect(info_surface, (12, 14, 18, 88), (0, 0, max_width, info_height), border_radius=12)
+        pygame.draw.rect(info_surface, (70, 82, 98, 135), (0, 0, max_width, info_height), 1, border_radius=12)
+        self.screen.blit(info_surface, (left - 8, top - 6))
 
         self.screen.blit(score_text, (left, top))
         self.screen.blit(time_text, (left, top + step))
         self.screen.blit(wave_text, (left, top + step * 2))
-        self.screen.blit(pause_text, (left, top + step * 3 + 2))
-        self.screen.blit(weapon_text, (left, top + step * 4 - 3))
-        self.screen.blit(switch_text, (left, top + step * 5 - 8))
-        self.screen.blit(aim_text, (left, top + step * 6 - 13))
-        self.screen.blit(left_text, (left, top + step * 7 - 18))
+        self.screen.blit(switch_text, (left, top + step * 3))
+        self.screen.blit(left_text, (left, top + step * 4))
         if boss_text is not None:
-            self.screen.blit(boss_text, (left, top + step * 8 - 23))
+            self.screen.blit(boss_text, (left, top + step * 5))
 
         if game.wave_manager.wave_banner_timer > 0 and not game.game_over:
             alpha = max(0.0, min(1.0, game.wave_manager.wave_banner_timer / game.wave_manager.config.banner_duration))
@@ -189,7 +288,7 @@ class GameRenderer:
         title = self.big_font.render("КРИМЗОЛЕНД", True, (255, 80, 80))
         lose = self.font.render("Ты проиграл", True, (245, 245, 245))
         final_score = self.font.render(f"Финальный счёт: {score}", True, (245, 245, 245))
-        hint = self.small_font.render("R - заново | ESC - меню", True, (220, 220, 220))
+        hint = self.small_font.render("ESC - меню", True, (220, 220, 220))
 
         sw = self.screen.get_width()
         sh = self.screen.get_height()
@@ -208,8 +307,8 @@ class GameRenderer:
         sh = self.screen.get_height()
 
         if game.victory:
-            title = self.menu_font.render(f"ПОБЕДА! {game.wave_manager.config.total_waves} волн пройдено", True, (255, 220, 120))
-            prompt_text = "Введи имя для таблицы рекордов:"
+            title = self.menu_font.render("ПОБЕДА!", True, (255, 220, 120))
+            prompt_text = "Введи имя и нажми Enter:"
         else:
             title = self.menu_font.render("Новый рекорд", True, (255, 220, 120))
             prompt_text = "Введи имя и нажми Enter:"
@@ -237,14 +336,14 @@ class GameRenderer:
 
     def draw_highscores(self, highscores):
         self.screen.fill((0, 0, 0))
-        title = self.big_font.render("РЕКОРДЫ", True, (255, 80, 80))
+        title = self.big_font.render("ТАБЛИЦА РЕКОРДОВ", True, (255, 80, 80))
         back = self.small_font.render("ESC - назад", True, (200, 200, 200))
 
         sw = self.screen.get_width()
         self.screen.blit(title, (sw // 2 - title.get_width() // 2, 60))
-        self.screen.blit(back, (sw // 2 - back.get_width() // 2, 95))
+        self.screen.blit(back, (40, 40))
 
-        header = self.small_font.render("МЕСТО   ИМЯ                 ОЧКИ     ДАТА         ВРЕМЯ", True, (150, 210, 255))
+        header = self.small_font.render("МЕСТО   ИГРОК             ОЧКИ     ДАТА         ВРЕМЯ", True, (150, 210, 255))
         self.screen.blit(header, (sw // 2 - header.get_width() // 2, 165))
 
         if not highscores:
