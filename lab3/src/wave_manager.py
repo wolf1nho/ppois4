@@ -20,13 +20,12 @@ class WaveManager:
     def reset(self):
         self.current_wave = 1
         self.wave_active = False
-        self.wave_pause_timer = 0.0
+        self.wave_pause_timer = self.config.wave_pause
         self.wave_queue = []
         self.wave_banner_timer = 0.0
         self.spawn_timer = 0.0
         self.spawn_interval = self.config.spawn_interval_start
         self.difficulty = self.config.difficulty_base
-        self.start_wave(self.current_wave)
 
     def choose_enemy_type(self, wave):
         roll = random.random()

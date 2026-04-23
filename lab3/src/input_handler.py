@@ -7,12 +7,14 @@ class InputHandler:
     def handle_keydown(self, game, event):
         if game.state == GameState.NAME_ENTRY:
             if event.key == pygame.K_RETURN:
+                game.play_sound("ui_accept")
                 game.save_record(game.name_input, game.pending_record)
                 game.pending_record = None
                 game.state = GameState.HIGHSCORES
             elif event.key == pygame.K_BACKSPACE:
                 game.name_input = game.name_input[:-1]
             elif event.key == pygame.K_ESCAPE:
+                game.play_sound("ui_esc")
                 game.pending_record = None
                 game.state = GameState.MENU
                 game.reset()
@@ -21,6 +23,7 @@ class InputHandler:
             return
 
         if event.key == pygame.K_ESCAPE:
+            game.play_sound("ui_esc")
             if game.state == GameState.PLAYING and game.game_over:
                 game.state = GameState.MENU
                 game.reset()
@@ -34,22 +37,40 @@ class InputHandler:
                 game.running = False
 
         if game.state == GameState.PLAYING and event.key in (pygame.K_q, KEY_ALIASES["q_ru"]):
+            previous_weapon = game.player.current_weapon
             game.player.switch_weapon(-1)
+            if game.player.current_weapon != previous_weapon:
+                game.play_sound("ui_move")
         if game.state == GameState.PLAYING and event.key in (pygame.K_e, KEY_ALIASES["e_ru"]):
+            previous_weapon = game.player.current_weapon
             game.player.switch_weapon(1)
+            if game.player.current_weapon != previous_weapon:
+                game.play_sound("ui_move")
         if game.state == GameState.PLAYING and event.key in (pygame.K_1, KEY_ALIASES["1_ascii"]):
+            previous_weapon = game.player.current_weapon
             game.player.select_weapon(0)
+            if game.player.current_weapon != previous_weapon:
+                game.play_sound("ui_move")
         if game.state == GameState.PLAYING and event.key in (pygame.K_2, KEY_ALIASES["2_ascii"]):
+            previous_weapon = game.player.current_weapon
             game.player.select_weapon(1)
+            if game.player.current_weapon != previous_weapon:
+                game.play_sound("ui_move")
         if game.state == GameState.PLAYING and event.key in (pygame.K_3, KEY_ALIASES["3_ascii"]):
+            previous_weapon = game.player.current_weapon
             game.player.select_weapon(2)
+            if game.player.current_weapon != previous_weapon:
+                game.play_sound("ui_move")
 
         if game.state == GameState.MENU:
-            if event.key in (pygame.K_DOWN, KEY_ALIASES["down_ru"]):
+            if event.key in (pygame.K_DOWN, KEY_ALIASES["down_ru"], pygame.K_s):
+                game.play_sound("ui_move")
                 game.menu_selected = (game.menu_selected + 1) % 3
-            elif event.key in (pygame.K_UP, KEY_ALIASES["up_ru"]):
+            elif event.key in (pygame.K_UP, KEY_ALIASES["up_ru"], pygame.K_w):
+                game.play_sound("ui_move")
                 game.menu_selected = (game.menu_selected - 1) % 3
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                game.play_sound("ui_accept")
                 if game.menu_selected == 0:
                     game.reset()
                     game.state = GameState.PLAYING
@@ -59,11 +80,14 @@ class InputHandler:
                     game.running = False
 
         if game.state == GameState.PAUSED:
-            if event.key in (pygame.K_DOWN, KEY_ALIASES["down_ru"]):
+            if event.key in (pygame.K_DOWN, KEY_ALIASES["down_ru"], pygame.K_s):
+                game.play_sound("ui_move")
                 game.pause_selected = (game.pause_selected + 1) % 2
-            elif event.key in (pygame.K_UP, KEY_ALIASES["up_ru"]):
+            elif event.key in (pygame.K_UP, KEY_ALIASES["up_ru"], pygame.K_w):
+                game.play_sound("ui_move")
                 game.pause_selected = (game.pause_selected - 1) % 2
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                game.play_sound("ui_accept")
                 if game.pause_selected == 0:
                     game.state = GameState.PLAYING
                 elif game.pause_selected == 1:

@@ -207,11 +207,15 @@ class GameRenderer:
         score_text = self.font.render(f"Счёт: {game.score}", True, (230, 230, 230))
         time_text = self.font.render(f"Время: {game.time_survived:05.1f}", True, (230, 230, 230))
         total_waves = game.wave_manager.config.total_waves
-        wave_text = self.font.render(f"Волна: {min(game.wave_manager.current_wave, total_waves)}/{total_waves}", True, (245, 220, 140))
+        current_display_wave = game.displayed_wave()
+        wave_text = self.font.render(f"Волна: {current_display_wave}/{total_waves}", True, (245, 220, 140))
         switch_text = self.small_font.render("Q/E или 1-3 - смена", True, (200, 200, 200))
         pending = game.wave_manager.pending_count(len(game.enemies))
         left_text = self.small_font.render(f"Осталось на волне: {pending}", True, (200, 220, 255))
-        boss_text = self.small_font.render("Волна босса", True, (255, 205, 120)) if game.wave_manager.is_boss_wave() else None
+        is_boss_display_wave = (
+            current_display_wave <= total_waves and current_display_wave % game.wave_manager.config.boss_every == 0
+        )
+        boss_text = self.small_font.render("Волна босса", True, (255, 205, 120)) if is_boss_display_wave else None
 
         left = UI_CONFIG.hud_left
         top = UI_CONFIG.hud_top

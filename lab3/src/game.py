@@ -49,6 +49,7 @@ class Game:
         self.name_input = ""
         self.pending_record = None
         self.last_death_cause = "contact"
+        self.last_wave_sound = 0
 
         self.score_service = ScoreService(HIGHSCORE_FILE)
         self.highscores = self.score_service.load()
@@ -57,13 +58,19 @@ class Game:
         self.wave_manager = WaveManager()
 
         self.sounds = {
-            "automatic": self.load_sound("assets/automat.mp3"),
+            "automatic": self.load_sound("assets/automatic.mp3"),
             "shotgun": self.load_sound("assets/shortgun.mp3"),
             "sniper": self.load_sound("assets/awp.mp3"),
             "player_damage": self.load_sound("assets/playerdamagesound.mp3"),
             "new_wave": self.load_sound("assets/nextwave.mp3"),
+            "boss_wave": self.load_sound("assets/boss_wave.mp3"),
+            "victory": self.load_sound("assets/game_completed.mp3"),
+            "death": self.load_sound("assets/game_over.mp3"),
             "pickup": self.load_sound("assets/pickup.mp3"),
-            "enemy_death": self.load_sound("assets/enemydeath.mp3")
+            "ui_move": self.load_sound("assets/ui_move.mp3"),
+            "ui_accept": self.load_sound("assets/ui_accept.mp3"),
+            "ui_esc": self.load_sound("assets/ui_esc.mp3"),
+            # "enemy_death": self.load_sound("assets/enemydeath.mp3")
         }
 
         self.reset()
@@ -80,7 +87,18 @@ class Game:
         self.highscores = self.score_service.add_record(self.highscores, name, score)
         self.score_service.save(self.highscores)
 
+    def play_sound(self, sound_key):
+        sound = self.sounds.get(sound_key)
+        if sound:
+            sound.play()
+
+    def displayed_wave(self):
+        if self.last_wave_sound <= 0:
+            return 1
+        return min(self.last_wave_sound, self.wave_manager.config.total_waves)
+
     def reset(self):
+        self.last_wave_sound = 0
         self.player = Player(self.screen, sounds=self.sounds)
         self.bullets = []
         self.enemy_bullets = []
@@ -96,8 +114,6 @@ class Game:
         self.wave_manager.reset()
 
     def try_spawn_health_pickup(self, x, y, enemy_type):
-        if self.sounds.get("enemy_death"):
-            self.sounds["enemy_death"].play()
         chance = HEALTH_PICKUP_CONFIG.boss_drop_chance if enemy_type == "boss" else HEALTH_PICKUP_CONFIG.drop_chance
         if random.random() > chance:
             return
@@ -156,19 +172,19 @@ class Game:
         if self.game_over:
             return
 
-        if self.sounds.get("player_damage"):
-            self.sounds["player_damage"].play()
-
         self.player.hp -= int(damage)
         if self.player.hp <= 0:
             self.player.hp = 0
             self.last_death_cause = cause
             self.trigger_player_death()
+        elif self.sounds.get("player_damage"):
+            self.sounds["player_damage"].play()
 
     def trigger_player_death(self):
         if self.game_over:
             return
         self.game_over = True
+        self.play_sound("death")
         self.spawn_death_effect(self.last_death_cause)
         self.trigger_name_entry()
 
@@ -262,14 +278,16 @@ class Game:
         self.time_survived += dt
 
         result = self.wave_manager.update(dt, len(self.enemies), len(self.enemy_bullets))
+        if result.wave_started:
+            wave_sound = "boss_wave" if self.wave_manager.is_boss_wave() else "new_wave"
+            self.play_sound(wave_sound)
+            self.last_wave_sound = self.wave_manager.current_wave
         for enemy_type in result.spawn_types:
             self.spawn_enemy(enemy_type)
 
-        if result.wave_started and self.sounds.get("new_wave"):
-            self.sounds["new_wave"].play()
-
         if result.victory:
             self.victory = True
+            self.play_sound("victory")
             self.trigger_name_entry()
 
         self.update_death_particles(dt)
