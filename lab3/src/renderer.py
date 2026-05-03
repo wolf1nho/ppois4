@@ -16,6 +16,8 @@ class GameRenderer:
         self.weapon_slot_font = pygame.font.SysFont("consolas", 16)
         self.weapon_images = self.load_weapon_images()
         self.enemy_images = self.load_enemy_images()
+        self.enemy_sprite_cache = {}
+        self.surface_cache = {}
 
     def load_weapon_images(self):
         base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -51,15 +53,18 @@ class GameRenderer:
         cy = int(enemy.y)
 
         if enemy_image is not None:
-            diameter = max(2, enemy.radius * 2)
-            scaled = pygame.transform.smoothscale(enemy_image, (diameter, diameter))
-            sprite_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
-            sprite_surface.blit(scaled, (0, 0))
+            cache_key = (enemy.enemy_type, enemy.radius)
+            sprite_surface = self.enemy_sprite_cache.get(cache_key)
+            if sprite_surface is None:
+                diameter = max(2, enemy.radius * 2)
+                scaled = pygame.transform.smoothscale(enemy_image, (diameter, diameter))
+                sprite_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+                sprite_surface.blit(scaled, (0, 0))
 
-            mask_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
-            pygame.draw.circle(mask_surface, (255, 255, 255, 255), (enemy.radius, enemy.radius), enemy.radius)
-            sprite_surface.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-
+                mask_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+                pygame.draw.circle(mask_surface, (255, 255, 255, 255), (enemy.radius, enemy.radius), enemy.radius)
+                sprite_surface.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                self.enemy_sprite_cache[cache_key] = sprite_surface
             self.screen.blit(sprite_surface, (cx - enemy.radius, cy - enemy.radius))
             pygame.draw.circle(self.screen, enemy.color_outline, (cx, cy), enemy.radius, 2)
             return
@@ -75,6 +80,15 @@ class GameRenderer:
             pygame.draw.line(self.screen, (34, 26, 42), (0, y), (sw, y), 1)
         for x in range(0, sw, 34):
             pygame.draw.line(self.screen, (34, 26, 42), (x, 0), (x, sh), 1)
+
+    def _get_cached_surface(self, key, width, height, draw_fn):
+        cached = self.surface_cache.get(key)
+        if cached is not None:
+            return cached
+        surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        draw_fn(surface)
+        self.surface_cache[key] = surface
+        return surface
 
     def draw_laser_bullet(self, bullet):
         speed = math.hypot(bullet.vx, bullet.vy)
@@ -248,7 +262,7 @@ class GameRenderer:
         switch_text = self.small_font.render("Q/E или 1-3 - смена", True, (200, 200, 200))
         pending = game.wave_manager.pending_count(len(game.enemies))
         left_text = self.small_font.render(f"Осталось на волне: {pending}", True, (200, 220, 255))
-        is_boss_display_wave = game.wave_manager.is_boss_wave_number(current_display_wave)
+        is_boss_display_wave = game.wave_manager.config.is_boss_wave(current_display_wave)
         boss_text = self.small_font.render("Волна босса", True, (255, 205, 120)) if is_boss_display_wave else None
 
         left = UI_CONFIG.hud_left
@@ -260,9 +274,15 @@ class GameRenderer:
 
         info_height = 20 + step * len(info_lines)
         max_width = max(line.get_width() for line in info_lines) + 24
-        info_surface = pygame.Surface((max_width, info_height), pygame.SRCALPHA)
-        pygame.draw.rect(info_surface, (12, 14, 18, 88), (0, 0, max_width, info_height), border_radius=12)
-        pygame.draw.rect(info_surface, (70, 82, 98, 135), (0, 0, max_width, info_height), 1, border_radius=12)
+        info_surface = self._get_cached_surface(
+            ("hud_info_bg", max_width, info_height),
+            max_width,
+            info_height,
+            lambda s: (
+                pygame.draw.rect(s, (12, 14, 18, 88), (0, 0, max_width, info_height), border_radius=12),
+                pygame.draw.rect(s, (70, 82, 98, 135), (0, 0, max_width, info_height), 1, border_radius=12),
+            ),
+        )
         self.screen.blit(info_surface, (left - 8, top - 6))
 
         self.screen.blit(score_text, (left, top))
@@ -276,8 +296,12 @@ class GameRenderer:
         if game.wave_manager.wave_banner_timer > 0 and not game.game_over:
             alpha = max(0.0, min(1.0, game.wave_manager.wave_banner_timer / game.wave_manager.config.banner_duration))
             bw, bh = UI_CONFIG.wave_banner_size
-            banner_surface = pygame.Surface((bw, bh), pygame.SRCALPHA)
-            banner_surface.fill((20, 20, 20, int(170 * alpha)))
+            banner_surface = self._get_cached_surface(
+                ("wave_banner_bg", bw, bh, int(170 * alpha)),
+                bw,
+                bh,
+                lambda s: s.fill((20, 20, 20, int(170 * alpha))),
+            )
             self.screen.blit(banner_surface, (self.screen.get_width() // 2 - bw // 2, UI_CONFIG.wave_banner_top))
             banner_color = (255, 220, 120) if game.wave_manager.is_boss_wave() else (220, 220, 220)
             banner_text = self.menu_font.render(f"ВОЛНА {game.wave_manager.current_wave}", True, banner_color)
@@ -317,46 +341,6 @@ class GameRenderer:
         self.draw_crosshair(game.player)
         self.draw_hud(game)
 
-    def draw_game_over_overlay(self, score):
-        sw = self.screen.get_width()
-        sh = self.screen.get_height()
-
-        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        overlay.fill((8, 12, 18, 185))
-        self.screen.blit(overlay, (0, 0))
-
-        panel_w = min(620, max(420, int(sw * 0.48)))
-        panel_h = 280
-        panel_x = sw // 2 - panel_w // 2
-        panel_y = sh // 2 - panel_h // 2
-
-        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (24, 34, 46, 230), (0, 0, panel_w, panel_h), border_radius=16)
-        pygame.draw.rect(panel, (102, 130, 162, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
-        self.screen.blit(panel, (panel_x, panel_y))
-
-        title = self.big_font.render("ПОРАЖЕНИЕ", True, (255, 120, 95))
-        subtitle = self.font.render("Попробуй еще раз", True, (224, 235, 248))
-        score_label = self.small_font.render("ФИНАЛЬНЫЙ СЧЕТ", True, (185, 205, 230))
-        score_value = self.menu_font.render(str(score), True, (255, 236, 185))
-        hint = self.small_font.render("ESC - в меню", True, (185, 205, 230))
-
-        self.screen.blit(title, (sw // 2 - title.get_width() // 2, panel_y + 26))
-        self.screen.blit(subtitle, (sw // 2 - subtitle.get_width() // 2, panel_y + 92))
-
-        score_box_w = min(300, panel_w - 70)
-        score_box_h = 72
-        score_box_x = sw // 2 - score_box_w // 2
-        score_box_y = panel_y + 132
-        score_box = pygame.Surface((score_box_w, score_box_h), pygame.SRCALPHA)
-        pygame.draw.rect(score_box, (44, 64, 88, 220), (0, 0, score_box_w, score_box_h), border_radius=12)
-        pygame.draw.rect(score_box, (230, 196, 110, 235), (0, 0, score_box_w, score_box_h), 2, border_radius=12)
-        self.screen.blit(score_box, (score_box_x, score_box_y))
-
-        self.screen.blit(score_label, (sw // 2 - score_label.get_width() // 2, score_box_y + 8))
-        self.screen.blit(score_value, (sw // 2 - score_value.get_width() // 2, score_box_y + 28))
-        self.screen.blit(hint, (sw // 2 - hint.get_width() // 2, panel_y + panel_h - 32))
-
     def draw_name_entry(self, game):
         self.draw_playing(game)
         sw = self.screen.get_width()
@@ -382,9 +366,15 @@ class GameRenderer:
         panel_x = sw // 2 - panel_w // 2
         panel_y = sh // 2 - panel_h // 2
 
-        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (24, 34, 46, 230), (0, 0, panel_w, panel_h), border_radius=16)
-        pygame.draw.rect(panel, (*border_color, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
+        panel = self._get_cached_surface(
+            ("name_entry_panel", panel_w, panel_h, border_color),
+            panel_w,
+            panel_h,
+            lambda s: (
+                pygame.draw.rect(s, (24, 34, 46, 230), (0, 0, panel_w, panel_h), border_radius=16),
+                pygame.draw.rect(s, (*border_color, 235), (0, 0, panel_w, panel_h), 3, border_radius=16),
+            ),
+        )
         self.screen.blit(panel, (panel_x, panel_y))
 
         title = self.big_font.render(title_text, True, title_color)
@@ -394,9 +384,15 @@ class GameRenderer:
         score_box_h = 66
         score_box_x = sw // 2 - score_box_w // 2
         score_box_y = panel_y + 120
-        score_box = pygame.Surface((score_box_w, score_box_h), pygame.SRCALPHA)
-        pygame.draw.rect(score_box, accent_bg, (0, 0, score_box_w, score_box_h), border_radius=12)
-        pygame.draw.rect(score_box, (*border_color, 235), (0, 0, score_box_w, score_box_h), 2, border_radius=12)
+        score_box = self._get_cached_surface(
+            ("name_entry_score_box", score_box_w, score_box_h, accent_bg, border_color),
+            score_box_w,
+            score_box_h,
+            lambda s: (
+                pygame.draw.rect(s, accent_bg, (0, 0, score_box_w, score_box_h), border_radius=12),
+                pygame.draw.rect(s, (*border_color, 235), (0, 0, score_box_w, score_box_h), 2, border_radius=12),
+            ),
+        )
         self.screen.blit(score_box, (score_box_x, score_box_y))
 
         score_label = self.small_font.render("ТВОЙ СЧЕТ", True, (214, 232, 255))
@@ -411,9 +407,15 @@ class GameRenderer:
         input_box_h = 54
         input_box_x = sw // 2 - input_box_w // 2
         input_box_y = panel_y + 226
-        input_box = pygame.Surface((input_box_w, input_box_h), pygame.SRCALPHA)
-        pygame.draw.rect(input_box, (44, 64, 88, 220), (0, 0, input_box_w, input_box_h), border_radius=10)
-        pygame.draw.rect(input_box, (120, 150, 185, 235), (0, 0, input_box_w, input_box_h), 2, border_radius=10)
+        input_box = self._get_cached_surface(
+            ("name_entry_input_box", input_box_w, input_box_h),
+            input_box_w,
+            input_box_h,
+            lambda s: (
+                pygame.draw.rect(s, (44, 64, 88, 220), (0, 0, input_box_w, input_box_h), border_radius=10),
+                pygame.draw.rect(s, (120, 150, 185, 235), (0, 0, input_box_w, input_box_h), 2, border_radius=10),
+            ),
+        )
         self.screen.blit(input_box, (input_box_x, input_box_y))
 
         typed_name = (game.name_input if game.name_input else "Игрок") + "_"
@@ -449,9 +451,15 @@ class GameRenderer:
             border_color = (230, 196, 110) if active else ((120, 150, 185) if hovered else (86, 108, 132))
             text_color = (255, 240, 190) if active else ((240, 246, 255) if hovered else (214, 226, 240))
 
-            card = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            pygame.draw.rect(card, (*fill_color, 220), (0, 0, rect.width, rect.height), border_radius=14)
-            pygame.draw.rect(card, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14)
+            card = self._get_cached_surface(
+                ("menu_card", rect.width, rect.height, fill_color, border_color),
+                rect.width,
+                rect.height,
+                lambda s: (
+                    pygame.draw.rect(s, (*fill_color, 220), (0, 0, rect.width, rect.height), border_radius=14),
+                    pygame.draw.rect(s, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14),
+                ),
+            )
             self.screen.blit(card, rect.topleft)
 
             text = self.menu_font.render(options[i], True, text_color)
@@ -493,9 +501,15 @@ class GameRenderer:
         panel_x = sw // 2 - panel_w // 2
         panel_y = sh // 2 - panel_h // 2 + 40
 
-        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (24, 34, 46, 220), (0, 0, panel_w, panel_h), border_radius=16)
-        pygame.draw.rect(panel, (102, 130, 162, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
+        panel = self._get_cached_surface(
+            ("highscores_panel", panel_w, panel_h),
+            panel_w,
+            panel_h,
+            lambda s: (
+                pygame.draw.rect(s, (24, 34, 46, 220), (0, 0, panel_w, panel_h), border_radius=16),
+                pygame.draw.rect(s, (102, 130, 162, 235), (0, 0, panel_w, panel_h), 3, border_radius=16),
+            ),
+        )
         self.screen.blit(panel, (panel_x, panel_y))
 
         inner_x = panel_x + 24
@@ -508,9 +522,15 @@ class GameRenderer:
         col_date_right = col_time_right - 110
         col_score_right = col_date_right - 125
 
-        header_bg = pygame.Surface((row_w, 40), pygame.SRCALPHA)
-        pygame.draw.rect(header_bg, (44, 64, 88, 210), (0, 0, row_w, 40), border_radius=10)
-        pygame.draw.rect(header_bg, (120, 150, 185, 235), (0, 0, row_w, 40), 2, border_radius=10)
+        header_bg = self._get_cached_surface(
+            ("highscores_header_bg", row_w),
+            row_w,
+            40,
+            lambda s: (
+                pygame.draw.rect(s, (44, 64, 88, 210), (0, 0, row_w, 40), border_radius=10),
+                pygame.draw.rect(s, (120, 150, 185, 235), (0, 0, row_w, 40), 2, border_radius=10),
+            ),
+        )
         self.screen.blit(header_bg, (inner_x, header_y))
 
         header_color = (214, 232, 255)
@@ -530,11 +550,16 @@ class GameRenderer:
 
         for i, rec in enumerate(highscores[:10]):
             y = header_y + 52 + i * 36
-            row = pygame.Surface((row_w, 30), pygame.SRCALPHA)
             row_fill = (35, 50, 68, 170) if i % 2 == 0 else (30, 44, 60, 150)
-            pygame.draw.rect(row, row_fill, (0, 0, row_w, 30), border_radius=8)
-            if i == 0:
-                pygame.draw.rect(row, (230, 196, 110, 235), (0, 0, row_w, 30), 2, border_radius=8)
+            row = self._get_cached_surface(
+                ("highscores_row_bg", row_w, row_fill, i == 0),
+                row_w,
+                30,
+                lambda s: (
+                    pygame.draw.rect(s, row_fill, (0, 0, row_w, 30), border_radius=8),
+                    pygame.draw.rect(s, (230, 196, 110, 235), (0, 0, row_w, 30), 2, border_radius=8) if i == 0 else None,
+                ),
+            )
             self.screen.blit(row, (inner_x, y))
 
             color = (255, 236, 185) if i == 0 else (228, 236, 248)
@@ -597,9 +622,15 @@ class GameRenderer:
             border_color = (230, 196, 110) if active else ((120, 150, 185) if hovered else (86, 108, 132))
             text_color = (255, 240, 190) if active else ((240, 246, 255) if hovered else (214, 226, 240))
 
-            card = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            pygame.draw.rect(card, (*fill_color, 225), (0, 0, rect.width, rect.height), border_radius=14)
-            pygame.draw.rect(card, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14)
+            card = self._get_cached_surface(
+                ("pause_card", rect.width, rect.height, fill_color, border_color),
+                rect.width,
+                rect.height,
+                lambda s: (
+                    pygame.draw.rect(s, (*fill_color, 225), (0, 0, rect.width, rect.height), border_radius=14),
+                    pygame.draw.rect(s, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14),
+                ),
+            )
             self.screen.blit(card, rect.topleft)
 
             text = self.menu_font.render(options[i], True, text_color)

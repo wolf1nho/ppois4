@@ -295,11 +295,6 @@ class Game:
     def handle_keydown(self, event):
         self.input_handler.handle_keydown(self, event)
 
-    def draw(self):
-        self.renderer.draw_playing(self)
-        if self.game_over and self.state == GameState.PLAYING:
-            self.renderer.draw_game_over_overlay(self.score)
-
     def run(self):
         while self.running:
             dt = self.clock.tick(FPS) / 1000.0
@@ -362,7 +357,7 @@ class Game:
             if self.state == GameState.MENU:
                 self.renderer.draw_menu(self.menu_selected)
             elif self.state == GameState.PLAYING:
-                self.draw()
+                self.renderer.draw_playing(self)
             elif self.state == GameState.PAUSED:
                 self.renderer.draw_pause(self, self.pause_selected)
             elif self.state == GameState.HIGHSCORES:

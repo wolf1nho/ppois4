@@ -1,4 +1,5 @@
 import random
+from collections import deque
 from dataclasses import dataclass
 
 from .constants import ENEMY_TYPES
@@ -22,7 +23,7 @@ class WaveManager:
         self.current_wave = 1
         self.wave_active = False
         self.wave_pause_timer = self.config.wave_pause
-        self.wave_queue = []
+        self.wave_queue = deque()
         self.wave_banner_timer = 0.0
         self.spawn_timer = 0.0
         self.spawn_interval = self.config.get_wave(self.current_wave).spawn_interval
@@ -48,7 +49,7 @@ class WaveManager:
 
         if wave_config.shuffle:
             random.shuffle(queue)
-        return queue
+        return deque(queue)
 
     def start_wave(self, wave):
         wave_config = self.config.get_wave(wave)
@@ -69,7 +70,7 @@ class WaveManager:
         if self.wave_active:
             self.spawn_timer += dt
             while self.wave_queue and self.spawn_timer >= self.spawn_interval:
-                spawn_types.append(self.wave_queue.pop(0))
+                spawn_types.append(self.wave_queue.popleft())
                 self.spawn_timer -= self.spawn_interval
 
             if not self.wave_queue and alive_enemies == 0 and alive_enemy_bullets == 0:
@@ -99,9 +100,6 @@ class WaveManager:
 
     def is_boss_wave(self):
         return self.config.is_boss_wave(self.current_wave)
-
-    def is_boss_wave_number(self, wave_number):
-        return self.config.is_boss_wave(wave_number)
 
     def pending_count(self, alive_enemies):
         return len(self.wave_queue) + alive_enemies

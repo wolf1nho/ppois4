@@ -53,7 +53,7 @@ class ScoreService:
     def add_record(self, highscores, name, score):
         now = datetime.datetime.now()
         record = {
-            "name": (name.strip() or "Player")[:20],
+            "name": (name.strip() or "Игрок")[:20],
             "score": int(score),
             "date": now.strftime("%Y-%m-%d"),
             "time": now.strftime("%H:%M:%S"),
