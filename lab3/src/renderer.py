@@ -3,7 +3,7 @@ import os
 
 import pygame
 
-from .constants import MAX_HP, UI_CONFIG, WEAPONS
+from .constants import ENEMY_TYPES, MAX_HP, UI_CONFIG, WEAPONS
 
 
 class GameRenderer:
@@ -15,6 +15,7 @@ class GameRenderer:
         self.small_font = pygame.font.SysFont("consolas", 18)
         self.weapon_slot_font = pygame.font.SysFont("consolas", 16)
         self.weapon_images = self.load_weapon_images()
+        self.enemy_images = self.load_enemy_images()
 
     def load_weapon_images(self):
         base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -30,6 +31,41 @@ class GameRenderer:
             except Exception:
                 loaded[weapon_name] = None
         return loaded
+
+    def load_enemy_images(self):
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        loaded = {}
+        for enemy_type, stats in ENEMY_TYPES.items():
+            if not stats.image_path:
+                loaded[enemy_type] = None
+                continue
+            try:
+                loaded[enemy_type] = pygame.image.load(os.path.join(base_dir, stats.image_path)).convert_alpha()
+            except Exception:
+                loaded[enemy_type] = None
+        return loaded
+
+    def draw_enemy(self, enemy):
+        enemy_image = self.enemy_images.get(enemy.enemy_type)
+        cx = int(enemy.x)
+        cy = int(enemy.y)
+
+        if enemy_image is not None:
+            diameter = max(2, enemy.radius * 2)
+            scaled = pygame.transform.smoothscale(enemy_image, (diameter, diameter))
+            sprite_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+            sprite_surface.blit(scaled, (0, 0))
+
+            mask_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+            pygame.draw.circle(mask_surface, (255, 255, 255, 255), (enemy.radius, enemy.radius), enemy.radius)
+            sprite_surface.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+            self.screen.blit(sprite_surface, (cx - enemy.radius, cy - enemy.radius))
+            pygame.draw.circle(self.screen, enemy.color_outline, (cx, cy), enemy.radius, 2)
+            return
+
+        pygame.draw.circle(self.screen, enemy.color_fill, (cx, cy), enemy.radius)
+        pygame.draw.circle(self.screen, enemy.color_outline, (cx, cy), enemy.radius, 2)
 
     def draw_background(self):
         sw = self.screen.get_width()
@@ -212,9 +248,7 @@ class GameRenderer:
         switch_text = self.small_font.render("Q/E или 1-3 - смена", True, (200, 200, 200))
         pending = game.wave_manager.pending_count(len(game.enemies))
         left_text = self.small_font.render(f"Осталось на волне: {pending}", True, (200, 220, 255))
-        is_boss_display_wave = (
-            current_display_wave <= total_waves and current_display_wave % game.wave_manager.config.boss_every == 0
-        )
+        is_boss_display_wave = game.wave_manager.is_boss_wave_number(current_display_wave)
         boss_text = self.small_font.render("Волна босса", True, (255, 205, 120)) if is_boss_display_wave else None
 
         left = UI_CONFIG.hud_left
@@ -245,7 +279,7 @@ class GameRenderer:
             banner_surface = pygame.Surface((bw, bh), pygame.SRCALPHA)
             banner_surface.fill((20, 20, 20, int(170 * alpha)))
             self.screen.blit(banner_surface, (self.screen.get_width() // 2 - bw // 2, UI_CONFIG.wave_banner_top))
-            banner_color = (255, 220, 120) if game.wave_manager.current_wave % game.wave_manager.config.boss_every == 0 else (220, 220, 220)
+            banner_color = (255, 220, 120) if game.wave_manager.is_boss_wave() else (220, 220, 220)
             banner_text = self.menu_font.render(f"ВОЛНА {game.wave_manager.current_wave}", True, banner_color)
             self.screen.blit(banner_text, (self.screen.get_width() // 2 - banner_text.get_width() // 2, UI_CONFIG.wave_banner_top + 10))
 
@@ -262,8 +296,7 @@ class GameRenderer:
             self.draw_health_pickup(pickup)
 
         for enemy in game.enemies:
-            pygame.draw.circle(self.screen, enemy.color_fill, (int(enemy.x), int(enemy.y)), enemy.radius)
-            pygame.draw.circle(self.screen, enemy.color_outline, (int(enemy.x), int(enemy.y)), enemy.radius, 2)
+            self.draw_enemy(enemy)
             if enemy.hp < enemy.max_hp:
                 hp_w = max(14, enemy.radius * 2)
                 hp_ratio = max(0.0, enemy.hp / enemy.max_hp)

@@ -9,8 +9,6 @@ PLAYER_SPEED = 290
 PLAYER_RADIUS = 35
 BULLET_SPEED = 700
 BULLET_RADIUS = 6
-SPAWN_INTERVAL_START = 1
-TOTAL_WAVES = 15
 
 MAX_HP = 100
 HIGHSCORE_FILE = "highscore.json"
@@ -62,6 +60,7 @@ class EnemyStats:
     bullet_damage_mult: float
     color_fill: tuple[int, int, int]
     color_outline: tuple[int, int, int]
+    image_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -74,22 +73,6 @@ class WeaponStats:
     pellets: int = 1
     spread: float = 0.0
     sound_key: str = "pistol"
-
-
-@dataclass(frozen=True)
-class WaveConfig:
-    total_waves: int = 15
-    boss_every: int = 5
-    base_enemy_count: int = 7
-    enemy_per_wave_increment: int = 5
-    boss_minions_base: int = 5
-    spawn_interval_start: float = SPAWN_INTERVAL_START
-    min_spawn_interval: float = 0.4
-    spawn_interval_wave_step: float = 0.03
-    difficulty_base: float = 1.25
-    difficulty_step: float = 0.06
-    wave_pause: float = 2.4
-    banner_duration: float = 2.2
 
 
 @dataclass(frozen=True)
@@ -124,7 +107,6 @@ class HealthPickupConfig:
     lifetime: float = 12.0
 
 
-WAVE_CONFIG = WaveConfig(total_waves=TOTAL_WAVES)
 UI_CONFIG = UiConfig()
 HEALTH_PICKUP_CONFIG = HealthPickupConfig()
 
@@ -169,6 +151,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(205, 52, 52),
         color_outline=(255, 110, 110),
+        image_path="assets/grunt.jpeg",
     ),
     "tank": EnemyStats(
         name="Танк",
@@ -182,6 +165,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(132, 42, 24),
         color_outline=(215, 98, 60),
+        image_path="assets/tank.jpeg",
     ),
     "swift": EnemyStats(
         name="Быстрый",
@@ -195,6 +179,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(124, 52, 205),
         color_outline=(188, 146, 255),
+        image_path="assets/swift.jpeg",
     ),
     "shooter": EnemyStats(
         name="Стрелок",
@@ -208,6 +193,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=1.2,
         color_fill=(42, 104, 192),
         color_outline=(122, 186, 255),
+        image_path="assets/shooter.jpeg",
     ),
     "boss": EnemyStats(
         name="Босс",
@@ -221,6 +207,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=2.0,
         color_fill=(86, 20, 20),
         color_outline=(255, 205, 70),
+        image_path="assets/boss.jpeg",
     ),
 }
 
