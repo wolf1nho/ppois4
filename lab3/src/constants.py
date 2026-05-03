@@ -10,7 +10,7 @@ PLAYER_RADIUS = 35
 BULLET_SPEED = 700
 BULLET_RADIUS = 6
 SPAWN_INTERVAL_START = 1
-TOTAL_WAVES = 15
+TOTAL_WAVES = 20
 
 MAX_HP = 100
 HIGHSCORE_FILE = "highscore.json"
@@ -78,7 +78,7 @@ class WeaponStats:
 
 @dataclass(frozen=True)
 class WaveConfig:
-    total_waves: int = 15
+    total_waves: int = 20
     boss_every: int = 5
     base_enemy_count: int = 7
     enemy_per_wave_increment: int = 5
@@ -255,7 +255,6 @@ KEY_ALIASES = {
     "1_ascii": 49,
     "2_ascii": 50,
     "3_ascii": 51,
-    "4_ascii": 52,
 }
 
 DEATH_EFFECTS = {

@@ -309,6 +309,52 @@ class Game:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
                     self.handle_keydown(event)
+                elif event.type == pygame.MOUSEMOTION and self.state == GameState.MENU:
+                    for i, rect in enumerate(self.renderer.get_menu_button_rects()):
+                        if rect.collidepoint(event.pos):
+                            if self.menu_selected != i:
+                                self.menu_selected = i
+                                self.play_sound("ui_move")
+                            break
+                elif event.type == pygame.MOUSEMOTION and self.state == GameState.PAUSED:
+                    for i, rect in enumerate(self.renderer.get_pause_button_rects()):
+                        if rect.collidepoint(event.pos):
+                            if self.pause_selected != i:
+                                self.pause_selected = i
+                                self.play_sound("ui_move")
+                            break
+                elif (
+                    event.type == pygame.MOUSEBUTTONDOWN
+                    and event.button == 1
+                    and self.state == GameState.MENU
+                ):
+                    for i, rect in enumerate(self.renderer.get_menu_button_rects()):
+                        if rect.collidepoint(event.pos):
+                            self.menu_selected = i
+                            self.play_sound("ui_accept")
+                            if i == 0:
+                                self.reset()
+                                self.state = GameState.PLAYING
+                            elif i == 1:
+                                self.state = GameState.HIGHSCORES
+                            elif i == 2:
+                                self.running = False
+                            break
+                elif (
+                    event.type == pygame.MOUSEBUTTONDOWN
+                    and event.button == 1
+                    and self.state == GameState.PAUSED
+                ):
+                    for i, rect in enumerate(self.renderer.get_pause_button_rects()):
+                        if rect.collidepoint(event.pos):
+                            self.pause_selected = i
+                            self.play_sound("ui_accept")
+                            if i == 0:
+                                self.state = GameState.PLAYING
+                            elif i == 1:
+                                self.state = GameState.MENU
+                                self.reset()
+                            break
 
             if self.state == GameState.PLAYING:
                 self.update(dt)

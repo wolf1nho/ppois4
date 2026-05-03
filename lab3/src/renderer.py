@@ -285,98 +285,289 @@ class GameRenderer:
         self.draw_hud(game)
 
     def draw_game_over_overlay(self, score):
-        overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 165))
-        self.screen.blit(overlay, (0, 0))
-
-        title = self.big_font.render("КРИМЗОЛЕНД", True, (255, 80, 80))
-        lose = self.font.render("Ты проиграл", True, (245, 245, 245))
-        final_score = self.font.render(f"Финальный счёт: {score}", True, (245, 245, 245))
-        hint = self.small_font.render("ESC - меню", True, (220, 220, 220))
-
         sw = self.screen.get_width()
         sh = self.screen.get_height()
-        self.screen.blit(title, (sw // 2 - title.get_width() // 2, sh // 2 - 90))
-        self.screen.blit(lose, (sw // 2 - lose.get_width() // 2, sh // 2 - 20))
-        self.screen.blit(final_score, (sw // 2 - final_score.get_width() // 2, sh // 2 + 18))
-        self.screen.blit(hint, (sw // 2 - hint.get_width() // 2, sh // 2 + 58))
+
+        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        overlay.fill((8, 12, 18, 185))
+        self.screen.blit(overlay, (0, 0))
+
+        panel_w = min(620, max(420, int(sw * 0.48)))
+        panel_h = 280
+        panel_x = sw // 2 - panel_w // 2
+        panel_y = sh // 2 - panel_h // 2
+
+        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (24, 34, 46, 230), (0, 0, panel_w, panel_h), border_radius=16)
+        pygame.draw.rect(panel, (102, 130, 162, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
+        self.screen.blit(panel, (panel_x, panel_y))
+
+        title = self.big_font.render("ПОРАЖЕНИЕ", True, (255, 120, 95))
+        subtitle = self.font.render("Попробуй еще раз", True, (224, 235, 248))
+        score_label = self.small_font.render("ФИНАЛЬНЫЙ СЧЕТ", True, (185, 205, 230))
+        score_value = self.menu_font.render(str(score), True, (255, 236, 185))
+        hint = self.small_font.render("ESC - в меню", True, (185, 205, 230))
+
+        self.screen.blit(title, (sw // 2 - title.get_width() // 2, panel_y + 26))
+        self.screen.blit(subtitle, (sw // 2 - subtitle.get_width() // 2, panel_y + 92))
+
+        score_box_w = min(300, panel_w - 70)
+        score_box_h = 72
+        score_box_x = sw // 2 - score_box_w // 2
+        score_box_y = panel_y + 132
+        score_box = pygame.Surface((score_box_w, score_box_h), pygame.SRCALPHA)
+        pygame.draw.rect(score_box, (44, 64, 88, 220), (0, 0, score_box_w, score_box_h), border_radius=12)
+        pygame.draw.rect(score_box, (230, 196, 110, 235), (0, 0, score_box_w, score_box_h), 2, border_radius=12)
+        self.screen.blit(score_box, (score_box_x, score_box_y))
+
+        self.screen.blit(score_label, (sw // 2 - score_label.get_width() // 2, score_box_y + 8))
+        self.screen.blit(score_value, (sw // 2 - score_value.get_width() // 2, score_box_y + 28))
+        self.screen.blit(hint, (sw // 2 - hint.get_width() // 2, panel_y + panel_h - 32))
 
     def draw_name_entry(self, game):
         self.draw_playing(game)
-        overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))
-        self.screen.blit(overlay, (0, 0))
-
         sw = self.screen.get_width()
         sh = self.screen.get_height()
 
-        if game.victory:
-            title = self.menu_font.render("ПОБЕДА!", True, (255, 220, 120))
-            prompt_text = "Введи имя и нажми Enter:"
-        else:
-            title = self.menu_font.render("Новый рекорд", True, (255, 220, 120))
-            prompt_text = "Введи имя и нажми Enter:"
-        score_line = self.font.render(f"Очки: {game.pending_record}", True, (235, 235, 235))
-        prompt = self.font.render(prompt_text, True, (235, 235, 235))
-        name_value = self.font.render(game.name_input + "_", True, (120, 255, 170))
-        hint = self.small_font.render("Backspace - удалить | ESC - пропустить", True, (200, 200, 200))
+        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        overlay.fill((8, 12, 18, 190))
+        self.screen.blit(overlay, (0, 0))
 
-        self.screen.blit(title, (sw // 2 - title.get_width() // 2, sh // 2 - 120))
-        self.screen.blit(score_line, (sw // 2 - score_line.get_width() // 2, sh // 2 - 70))
-        self.screen.blit(prompt, (sw // 2 - prompt.get_width() // 2, sh // 2 - 20))
-        self.screen.blit(name_value, (sw // 2 - name_value.get_width() // 2, sh // 2 + 22))
-        self.screen.blit(hint, (sw // 2 - hint.get_width() // 2, sh // 2 + 65))
+        if game.victory:
+            title_text = "ПОБЕДА"
+            title_color = (255, 220, 120)
+            border_color = (230, 196, 110)
+            accent_bg = (60, 76, 44, 220)
+        else:
+            title_text = "ПОРАЖЕНИЕ"
+            title_color = (255, 130, 105)
+            border_color = (185, 118, 104)
+            accent_bg = (72, 44, 44, 220)
+
+        panel_w = min(680, max(430, int(sw * 0.52)))
+        panel_h = 340
+        panel_x = sw // 2 - panel_w // 2
+        panel_y = sh // 2 - panel_h // 2
+
+        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (24, 34, 46, 230), (0, 0, panel_w, panel_h), border_radius=16)
+        pygame.draw.rect(panel, (*border_color, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
+        self.screen.blit(panel, (panel_x, panel_y))
+
+        title = self.big_font.render(title_text, True, title_color)
+        self.screen.blit(title, (sw // 2 - title.get_width() // 2, panel_y + 24))
+
+        score_box_w = panel_w - 120
+        score_box_h = 66
+        score_box_x = sw // 2 - score_box_w // 2
+        score_box_y = panel_y + 120
+        score_box = pygame.Surface((score_box_w, score_box_h), pygame.SRCALPHA)
+        pygame.draw.rect(score_box, accent_bg, (0, 0, score_box_w, score_box_h), border_radius=12)
+        pygame.draw.rect(score_box, (*border_color, 235), (0, 0, score_box_w, score_box_h), 2, border_radius=12)
+        self.screen.blit(score_box, (score_box_x, score_box_y))
+
+        score_label = self.small_font.render("ТВОЙ СЧЕТ", True, (214, 232, 255))
+        score_value = self.menu_font.render(str(game.pending_record), True, (245, 245, 245))
+        self.screen.blit(score_label, (sw // 2 - score_label.get_width() // 2, score_box_y + 8))
+        self.screen.blit(score_value, (sw // 2 - score_value.get_width() // 2, score_box_y + 26))
+
+        prompt = self.small_font.render("Введите имя", True, (214, 232, 255))
+        self.screen.blit(prompt, (sw // 2 - prompt.get_width() // 2, panel_y + 202))
+
+        input_box_w = panel_w - 120
+        input_box_h = 54
+        input_box_x = sw // 2 - input_box_w // 2
+        input_box_y = panel_y + 226
+        input_box = pygame.Surface((input_box_w, input_box_h), pygame.SRCALPHA)
+        pygame.draw.rect(input_box, (44, 64, 88, 220), (0, 0, input_box_w, input_box_h), border_radius=10)
+        pygame.draw.rect(input_box, (120, 150, 185, 235), (0, 0, input_box_w, input_box_h), 2, border_radius=10)
+        self.screen.blit(input_box, (input_box_x, input_box_y))
+
+        typed_name = (game.name_input if game.name_input else "Игрок") + "_"
+        name_value = self.font.render(typed_name, True, (180, 255, 210))
+        self.screen.blit(name_value, (input_box_x + 18, input_box_y + 15))
 
     def draw_menu(self, menu_selected):
-        self.screen.fill((0, 0, 0))
-        title = self.big_font.render("КРИМЗОЛЕНД", True, (255, 80, 80))
-        options = ["Начать игру", "Рекорды", "Выход"]
-        colors = [(255, 255, 255) if i != menu_selected else (255, 255, 0) for i in range(3)]
+        sw = self.screen.get_width()
+        sh = self.screen.get_height()
 
-        self.screen.blit(title, (self.screen.get_width() // 2 - title.get_width() // 2, 100))
-        for i, opt in enumerate(options):
-            text = self.menu_font.render(f"{i + 1}. {opt}", True, colors[i])
-            self.screen.blit(text, (self.screen.get_width() // 2 - text.get_width() // 2, 250 + i * 50))
+        # Layered background so menu looks like a dedicated screen.
+        self.screen.fill((10, 14, 20))
+        for y in range(0, sh, 40):
+            alpha = 25 + (y % 80)
+            band = pygame.Surface((sw, 28), pygame.SRCALPHA)
+            band.fill((24, 34, 48, alpha))
+            self.screen.blit(band, (0, y))
+
+        title = self.big_font.render("КРИМЗОЛЕНД", True, (255, 120, 95))
+        self.screen.blit(title, (sw // 2 - title.get_width() // 2, sh // 2 - 220))
+
+        options = self.get_menu_options()
+        mouse_pos = pygame.mouse.get_pos()
+        for i, rect in enumerate(self.get_menu_button_rects()):
+            hovered = rect.collidepoint(mouse_pos)
+            active = i == menu_selected
+
+            base_color = (24, 34, 46)
+            fill_color = (54, 76, 102) if hovered else base_color
+            if active:
+                fill_color = (86, 112, 142)
+
+            border_color = (230, 196, 110) if active else ((120, 150, 185) if hovered else (86, 108, 132))
+            text_color = (255, 240, 190) if active else ((240, 246, 255) if hovered else (214, 226, 240))
+
+            card = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(card, (*fill_color, 220), (0, 0, rect.width, rect.height), border_radius=14)
+            pygame.draw.rect(card, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14)
+            self.screen.blit(card, rect.topleft)
+
+            text = self.menu_font.render(options[i], True, text_color)
+            self.screen.blit(text, (rect.centerx - text.get_width() // 2, rect.centery - text.get_height() // 2))
+
+    def get_menu_options(self):
+        return ["Начать игру", "Рекорды", "Выход"]
+
+    def get_menu_button_rects(self):
+        sw = self.screen.get_width()
+        sh = self.screen.get_height()
+        button_w = min(520, max(340, int(sw * 0.42)))
+        button_h = 74
+        gap = 20
+        count = len(self.get_menu_options())
+        total_h = count * button_h + (count - 1) * gap
+        start_y = sh // 2 - total_h // 2 - 8
+        start_x = sw // 2 - button_w // 2
+        return [pygame.Rect(start_x, start_y + i * (button_h + gap), button_w, button_h) for i in range(count)]
 
     def draw_highscores(self, highscores):
-        self.screen.fill((0, 0, 0))
-        title = self.big_font.render("ТАБЛИЦА РЕКОРДОВ", True, (255, 80, 80))
-        back = self.small_font.render("ESC - назад", True, (200, 200, 200))
-
         sw = self.screen.get_width()
-        self.screen.blit(title, (sw // 2 - title.get_width() // 2, 60))
-        self.screen.blit(back, (40, 40))
+        sh = self.screen.get_height()
 
-        header = self.small_font.render("МЕСТО   ИГРОК             ОЧКИ     ДАТА         ВРЕМЯ", True, (150, 210, 255))
-        self.screen.blit(header, (sw // 2 - header.get_width() // 2, 165))
+        self.screen.fill((10, 14, 20))
+        for y in range(0, sh, 40):
+            alpha = 25 + (y % 80)
+            band = pygame.Surface((sw, 28), pygame.SRCALPHA)
+            band.fill((24, 34, 48, alpha))
+            self.screen.blit(band, (0, y))
+
+        title = self.big_font.render("ТАБЛИЦА РЕКОРДОВ", True, (255, 120, 95))
+        subtitle = self.small_font.render("Лучшие результаты", True, (190, 205, 225))
+        self.screen.blit(title, (sw // 2 - title.get_width() // 2, 52))
+        self.screen.blit(subtitle, (sw // 2 - subtitle.get_width() // 2, 105))
+
+        panel_w = min(900, max(700, int(sw * 0.72)))
+        panel_h = min(470, max(350, int(sh * 0.62)))
+        panel_x = sw // 2 - panel_w // 2
+        panel_y = sh // 2 - panel_h // 2 + 40
+
+        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (24, 34, 46, 220), (0, 0, panel_w, panel_h), border_radius=16)
+        pygame.draw.rect(panel, (102, 130, 162, 235), (0, 0, panel_w, panel_h), 3, border_radius=16)
+        self.screen.blit(panel, (panel_x, panel_y))
+
+        inner_x = panel_x + 24
+        header_y = panel_y + 20
+        row_w = panel_w - 48
+        col_place = inner_x + 12
+        col_name = inner_x + 92
+        right_pad = 14
+        col_time_right = inner_x + row_w - right_pad
+        col_date_right = col_time_right - 110
+        col_score_right = col_date_right - 125
+
+        header_bg = pygame.Surface((row_w, 40), pygame.SRCALPHA)
+        pygame.draw.rect(header_bg, (44, 64, 88, 210), (0, 0, row_w, 40), border_radius=10)
+        pygame.draw.rect(header_bg, (120, 150, 185, 235), (0, 0, row_w, 40), 2, border_radius=10)
+        self.screen.blit(header_bg, (inner_x, header_y))
+
+        header_color = (214, 232, 255)
+        self.screen.blit(self.small_font.render("МЕСТО", True, header_color), (col_place, header_y + 10))
+        self.screen.blit(self.small_font.render("ИГРОК", True, header_color), (col_name, header_y + 10))
+        score_header = self.small_font.render("ОЧКИ", True, header_color)
+        date_header = self.small_font.render("ДАТА", True, header_color)
+        time_header = self.small_font.render("ВРЕМЯ", True, header_color)
+        self.screen.blit(score_header, (col_score_right - score_header.get_width(), header_y + 10))
+        self.screen.blit(date_header, (col_date_right - date_header.get_width(), header_y + 10))
+        self.screen.blit(time_header, (col_time_right - time_header.get_width(), header_y + 10))
 
         if not highscores:
-            empty = self.font.render("Рекордов пока нет", True, (230, 230, 230))
-            self.screen.blit(empty, (sw // 2 - empty.get_width() // 2, 250))
+            empty = self.font.render("Рекордов пока нет", True, (230, 238, 248))
+            self.screen.blit(empty, (sw // 2 - empty.get_width() // 2, panel_y + panel_h // 2 - 12))
             return
 
         for i, rec in enumerate(highscores[:10]):
-            color = (255, 220, 120) if i == 0 else (235, 235, 235)
-            line = self.small_font.render(
-                f"{i + 1:>2}      {rec['name']:<20} {rec['score']:>6}   {rec['date']:<10}   {rec['time']}",
-                True,
-                color,
-            )
-            self.screen.blit(line, (sw // 2 - line.get_width() // 2, 200 + i * 28))
+            y = header_y + 52 + i * 36
+            row = pygame.Surface((row_w, 30), pygame.SRCALPHA)
+            row_fill = (35, 50, 68, 170) if i % 2 == 0 else (30, 44, 60, 150)
+            pygame.draw.rect(row, row_fill, (0, 0, row_w, 30), border_radius=8)
+            if i == 0:
+                pygame.draw.rect(row, (230, 196, 110, 235), (0, 0, row_w, 30), 2, border_radius=8)
+            self.screen.blit(row, (inner_x, y))
+
+            color = (255, 236, 185) if i == 0 else (228, 236, 248)
+            place_text = self.small_font.render(str(i + 1), True, color)
+            raw_name = str(rec["name"])
+            max_name_width = max(40, (col_score_right - 14) - col_name)
+            fitted_name = raw_name
+            while fitted_name and self.small_font.size(fitted_name)[0] > max_name_width:
+                fitted_name = fitted_name[:-1]
+            if fitted_name != raw_name and len(fitted_name) > 2:
+                fitted_name = fitted_name[:-2] + ".."
+            name_text = self.small_font.render(fitted_name, True, color)
+            score_text = self.small_font.render(str(rec["score"]), True, color)
+            date_text = self.small_font.render(str(rec["date"]), True, color)
+            time_text = self.small_font.render(str(rec["time"]), True, color)
+
+            self.screen.blit(place_text, (col_place, y + 7))
+            self.screen.blit(name_text, (col_name, y + 7))
+            self.screen.blit(score_text, (col_score_right - score_text.get_width(), y + 7))
+            self.screen.blit(date_text, (col_date_right - date_text.get_width(), y + 7))
+            self.screen.blit(time_text, (col_time_right - time_text.get_width(), y + 7))
+
+    def get_pause_options(self):
+        return ["Продолжить", "Выйти в меню"]
+
+    def get_pause_button_rects(self):
+        sw = self.screen.get_width()
+        sh = self.screen.get_height()
+        button_w = min(500, max(320, int(sw * 0.4)))
+        button_h = 70
+        gap = 18
+        count = len(self.get_pause_options())
+        total_h = count * button_h + (count - 1) * gap
+        start_y = sh // 2 - total_h // 2 + 8
+        start_x = sw // 2 - button_w // 2
+        return [pygame.Rect(start_x, start_y + i * (button_h + gap), button_w, button_h) for i in range(count)]
 
     def draw_pause(self, game, pause_selected):
         self.draw_playing(game)
         overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 150))
+        overlay.fill((8, 12, 18, 175))
         self.screen.blit(overlay, (0, 0))
-
-        title = self.big_font.render("ПАУЗА", True, (255, 80, 80))
-        options = ["Продолжить", "Выйти в меню"]
-        colors = [(255, 255, 255) if i != pause_selected else (255, 255, 0) for i in range(2)]
 
         sw = self.screen.get_width()
         sh = self.screen.get_height()
-        self.screen.blit(title, (sw // 2 - title.get_width() // 2, sh // 2 - 100))
-        for i, opt in enumerate(options):
-            text = self.menu_font.render(opt, True, colors[i])
-            self.screen.blit(text, (sw // 2 - text.get_width() // 2, sh // 2 - 20 + i * 50))
+        title = self.big_font.render("ПАУЗА", True, (255, 140, 105))
+        self.screen.blit(title, (sw // 2 - title.get_width() // 2, sh // 2 - 170))
+
+        options = self.get_pause_options()
+        mouse_pos = pygame.mouse.get_pos()
+        for i, rect in enumerate(self.get_pause_button_rects()):
+            hovered = rect.collidepoint(mouse_pos)
+            active = i == pause_selected
+
+            base_color = (24, 34, 46)
+            fill_color = (54, 76, 102) if hovered else base_color
+            if active:
+                fill_color = (86, 112, 142)
+
+            border_color = (230, 196, 110) if active else ((120, 150, 185) if hovered else (86, 108, 132))
+            text_color = (255, 240, 190) if active else ((240, 246, 255) if hovered else (214, 226, 240))
+
+            card = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(card, (*fill_color, 225), (0, 0, rect.width, rect.height), border_radius=14)
+            pygame.draw.rect(card, (*border_color, 235), (0, 0, rect.width, rect.height), 3, border_radius=14)
+            self.screen.blit(card, rect.topleft)
+
+            text = self.menu_font.render(options[i], True, text_color)
+            self.screen.blit(text, (rect.centerx - text.get_width() // 2, rect.centery - text.get_height() // 2))
