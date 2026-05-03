@@ -1,7 +1,8 @@
 import random
 from dataclasses import dataclass
 
-from .constants import WAVE_CONFIG
+from .constants import ENEMY_TYPES
+from .waves_config import WAVE_CONFIG
 
 
 @dataclass
@@ -24,52 +25,40 @@ class WaveManager:
         self.wave_queue = []
         self.wave_banner_timer = 0.0
         self.spawn_timer = 0.0
-        self.spawn_interval = self.config.spawn_interval_start
-        self.difficulty = self.config.difficulty_base
+        self.spawn_interval = self.config.get_wave(self.current_wave).spawn_interval
+        self.difficulty = self.config.get_wave(self.current_wave).difficulty
 
     def choose_enemy_type(self, wave):
-        roll = random.random()
-        if wave <= 4:
-            return "grunt" if roll < 0.8 else "swift"
-        if wave <= 9:
-            if roll < 0.45:
-                return "grunt"
-            if roll < 0.72:
-                return "swift"
-            if roll < 0.9:
-                return "tank"
-            return "shooter"
-
-        if roll < 0.32:
-            return "grunt"
-        if roll < 0.54:
-            return "swift"
-        if roll < 0.77:
-            return "tank"
-        return "shooter"
+        wave_config = self.config.get_wave(wave)
+        enemy_pool = [
+            enemy_type
+            for enemy_type, count in wave_config.enemy_counts.items()
+            for _ in range(count)
+            if enemy_type != "boss"
+        ]
+        return random.choice(enemy_pool) if enemy_pool else "grunt"
 
     def build_wave_queue(self, wave):
-        if wave % self.config.boss_every == 0:
-            minions_count = self.config.boss_minions_base + wave
-            queue = [self.choose_enemy_type(wave) for _ in range(minions_count)]
-            queue.append("boss")
-            random.shuffle(queue)
-            return queue
+        wave_config = self.config.get_wave(wave)
+        queue = []
+        for enemy_type, count in wave_config.enemy_counts.items():
+            if enemy_type not in ENEMY_TYPES:
+                raise ValueError(f"Unknown enemy type in wave config: {enemy_type}")
+            queue.extend([enemy_type] * count)
 
-        enemy_count = self.config.base_enemy_count + wave * self.config.enemy_per_wave_increment
-        return [self.choose_enemy_type(wave) for _ in range(enemy_count)]
+        if wave_config.shuffle:
+            random.shuffle(queue)
+        return queue
 
     def start_wave(self, wave):
+        wave_config = self.config.get_wave(wave)
         self.wave_queue = self.build_wave_queue(wave)
         self.wave_active = True
         self.wave_pause_timer = 0.0
         self.wave_banner_timer = self.config.banner_duration
         self.spawn_timer = 0.0
-        self.difficulty = self.config.difficulty_base + (wave - 1) * self.config.difficulty_step
-        self.spawn_interval = max(
-            self.config.min_spawn_interval,
-            self.config.spawn_interval_start - (wave - 1) * self.config.spawn_interval_wave_step,
-        )
+        self.difficulty = wave_config.difficulty
+        self.spawn_interval = wave_config.spawn_interval
 
     def update(self, dt, alive_enemies, alive_enemy_bullets):
         spawn_types = []
@@ -109,7 +98,10 @@ class WaveManager:
         )
 
     def is_boss_wave(self):
-        return self.current_wave <= self.config.total_waves and self.current_wave % self.config.boss_every == 0
+        return self.config.is_boss_wave(self.current_wave)
+
+    def is_boss_wave_number(self, wave_number):
+        return self.config.is_boss_wave(wave_number)
 
     def pending_count(self, alive_enemies):
         return len(self.wave_queue) + alive_enemies

@@ -62,6 +62,7 @@ class EnemyStats:
     bullet_damage_mult: float
     color_fill: tuple[int, int, int]
     color_outline: tuple[int, int, int]
+    image_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -124,7 +125,6 @@ class HealthPickupConfig:
     lifetime: float = 12.0
 
 
-WAVE_CONFIG = WaveConfig(total_waves=TOTAL_WAVES)
 UI_CONFIG = UiConfig()
 HEALTH_PICKUP_CONFIG = HealthPickupConfig()
 
@@ -169,6 +169,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(205, 52, 52),
         color_outline=(255, 110, 110),
+        image_path="assets/grunt.jpeg",
     ),
     "tank": EnemyStats(
         name="Танк",
@@ -182,6 +183,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(132, 42, 24),
         color_outline=(215, 98, 60),
+        image_path="assets/tank.jpeg",
     ),
     "swift": EnemyStats(
         name="Быстрый",
@@ -195,6 +197,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=0.0,
         color_fill=(124, 52, 205),
         color_outline=(188, 146, 255),
+        image_path="assets/swift.jpeg",
     ),
     "shooter": EnemyStats(
         name="Стрелок",
@@ -208,6 +211,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=1.2,
         color_fill=(42, 104, 192),
         color_outline=(122, 186, 255),
+        image_path="assets/shooter.jpeg",
     ),
     "boss": EnemyStats(
         name="Босс",
@@ -221,6 +225,7 @@ ENEMY_TYPES = {
         bullet_damage_mult=2.0,
         color_fill=(86, 20, 20),
         color_outline=(255, 205, 70),
+        image_path="assets/boss.jpeg",
     ),
 }
 
