@@ -1,0 +1,22 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Экскурсия</h2><span class="hint"><a href="{% url 'tours' %}">Назад к экскурсиям</a></span></div>
+  <table><thead><tr><th>Параметр</th><th>Значение</th></tr></thead><tbody><tr><td>Экспозиция</td><td>{% if tour_exp_index is not None %}<a href="{% url 'exposition_detail' tour_exp_index %}">{{ tour_exp_name }}</a>{% else %}{{ tour_exp_name }}{% endif %}</td></tr><tr><td>Гид</td><td>{{ tour_guide_name }}</td></tr><tr><td>Дата</td><td>{{ tour.get_date|date:'d.m.Y H:i' }}</td></tr><tr><td>Лимит</td><td>{{ tour.get_visitors_count }}/{{ tour.get_max_visitors }}</td></tr></tbody></table>
+</section>
+<section>
+  <h2>Посетители</h2>
+  <table><thead><tr><th>Имя</th><th>Год рождения</th><th>Пол</th></tr></thead><tbody>{% for i, v in visitors %}<tr><td>{{ v.get_name }}</td><td>{{ v.get_birth_year }}</td><td>{{ v.get_gender_description }}</td></tr>{% empty %}<tr><td colspan="3">Посетителей нет</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <h2>Действия</h2>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Изменить дату</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_date"><span class="label">Дата:</span><input name="tour_date" type="datetime-local" required><button>Изменить</button></form></div>
+    <div class="action-card"><h3>Сменить экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_exposition"><span class="label">Экспозиция:</span><select name="exp_index" required {% if not exposition_choices %}disabled{% endif %}>{% for i, name in exposition_choices %}<option value="{{ i }}">{{ name }}</option>{% endfor %}</select><button {% if not exposition_choices %}disabled{% endif %}>Сменить</button></form></div>
+    <div class="action-card"><h3>Сменить экскурсовода</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_guide"><span class="label">Экскурсовод:</span><select name="guide_index" required {% if not guide_choices %}disabled{% endif %}>{% for i, name in guide_choices %}<option value="{{ i }}">{{ name }}</option>{% endfor %}</select><button {% if not guide_choices %}disabled{% endif %}>Сменить</button></form></div>
+    <div class="action-card"><h3>Добавить посетителя</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_visitor"><span class="label">Имя:</span><input name="vis_name" required><span class="label">Год:</span><input name="vis_birth" type="number" required><span class="label">Пол:</span><input name="vis_sex" required><button>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить посетителя</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_visitor"><fieldset {% if not visitors %}disabled{% endif %}><span class="label">Посетитель:</span><select name="vis_index" required>{% for i, v in visitors %}<option value="{{ i }}">{{ v.get_name }}</option>{% endfor %}</select><button>Удалить</button></fieldset></form></div>
+    <div class="action-card"><h3>Удалить экскурсию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_tour"><button>Удалить экскурсию</button></form></div>
+  </div>
+</section>
+{% endblock %}

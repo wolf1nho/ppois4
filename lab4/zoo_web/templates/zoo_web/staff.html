@@ -1,0 +1,118 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Ветеринары</h2></div>
+  <table><thead><tr><th>Имя</th><th>Специализация</th></tr></thead><tbody>{% for i, vet in vets %}<tr><td>{{ vet.get_name }}</td><td>{{ vet.get_specialisation }}</td></tr>{% empty %}<tr><td colspan="2">Нет ветеринаров</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <div class="section-head"><h2>Экскурсоводы</h2></div>
+  <table><thead><tr><th>Имя</th><th>Языки</th></tr></thead><tbody>{% for i, guide in guides %}<tr><td>{{ guide.get_name }}</td><td>{{ guide.get_languages }}</td></tr>{% empty %}<tr><td colspan="2">Нет экскурсоводов</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <div class="section-head"><h2>Действия</h2></div>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить ветеринара</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_vet"><span class="label">Имя:</span><input name="vet_name" required><span class="label">Специализация:</span><input name="vet_spec" required><button>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить ветеринара</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_vet"><span class="label">Ветеринар:</span><select name="vet_index" required {% if not vet_choices %}disabled{% endif %}>{% for i, label in vet_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button {% if not vet_choices %}disabled{% endif %}>Удалить</button></form></div>
+    <div class="action-card"><h3>Добавить экскурсовода</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_guide"><span class="label">Имя:</span><input name="guide_name" required><span class="label">Языки:</span><input name="guide_langs" required><button>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить экскурсовода</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_guide"><span class="label">Экскурсовод:</span><select name="guide_index" required {% if not guide_choices %}disabled{% endif %}>{% for i, label in guide_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button {% if not guide_choices %}disabled{% endif %}>Удалить</button></form></div>
+    <div class="action-card">
+  <h3>Медосмотр</h3>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="vet_service">
+    
+    <span class="label">Вольер:</span>
+    <select id="vet-service-enc" name="enc_index" required>
+      {% for row in enclosures_with_animals %}
+      <option value="{{ row.enc_index }}">{{ row.enc_label }}</option>
+      {% endfor %}
+    </select>
+    
+    <span class="label">Животное:</span>
+    <select id="vet-service-animal" name="animal_index" required>
+      {% for row in enclosures_with_animals %}
+        {% for animal in row.animals %}
+        <option value="{{ animal.animal_index }}" data-parent="{{ row.enc_index }}">{{ animal.label }}</option>
+        {% endfor %}
+      {% endfor %}
+    </select>
+    
+    <span class="label">Ветеринар:</span>
+    <select id="vet-service-vet" name="vet_index" required>
+      {% for i, label in vet_choices %}
+      <option value="{{ i }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+    
+    <button id="vet-service-submit" data-has-vets="{% if vet_choices %}1{% else %}0{% endif %}">Выполнить</button>
+  </form>
+</div>
+  </div>
+</section>
+<script>
+(function(){const p=document.getElementById('vet-service-enc');const c=document.getElementById('vet-service-animal');const b=document.getElementById('vet-service-submit');if(!p||!c||!b)return;const o=Array.from(c.options);function s(){const v=p.value;let firstIdx=-1;o.forEach((x,idx)=>{const ok=x.dataset.parent===v;x.hidden=!ok;if(ok&&firstIdx===-1)firstIdx=idx;});if(firstIdx!==-1){c.disabled=false;b.disabled=false;c.selectedIndex=firstIdx;}else{c.disabled=true;b.disabled=true;c.selectedIndex=-1;}}p.addEventListener('change',s);s();})();
+
+(function(){
+  const encSelect = document.getElementById('vet-service-enc');
+  const animalSelect = document.getElementById('vet-service-animal');
+  const vetSelect = document.getElementById('vet-service-vet');
+  const submitBtn = document.getElementById('vet-service-submit');
+
+  if (!encSelect || !animalSelect || !vetSelect || !submitBtn) return;
+
+  const animalOptions = Array.from(animalSelect.options);
+  const hasVets = submitBtn.dataset.hasVets === "1";
+
+  function updateVetForm() {
+    const selectedEnc = encSelect.value;
+    let visibleAnimalsCount = 0;
+    let firstVisibleAnimalIdx = -1;
+
+    // 1. Фильтруем животных по выбранному вольеру
+    animalOptions.forEach((option, idx) => {
+      const isMatch = option.dataset.parent === selectedEnc;
+      option.hidden = !isMatch;
+      
+      if (isMatch) {
+        option.style.display = '';
+        visibleAnimalsCount++;
+        if (firstVisibleAnimalIdx === -1) firstVisibleAnimalIdx = idx;
+      } else {
+        option.style.display = 'none';
+      }
+    });
+
+    // 2. Корректируем выбранный элемент в списке животных
+    if (firstVisibleAnimalIdx !== -1) {
+      animalSelect.selectedIndex = firstVisibleAnimalIdx;
+    } else {
+      animalSelect.selectedIndex = -1;
+    }
+
+    // 3. Проверяем списки на пустоту
+    const isEncEmpty = encSelect.options.length === 0;
+    const isAnimalEmpty = visibleAnimalsCount === 0;
+    const isVetEmpty = !hasVets;
+
+    // Если хотя бы один список пуст — блокируем абсолютно все элементы управления в этой форме
+    if (isEncEmpty || isAnimalEmpty || isVetEmpty) {
+      encSelect.disabled = true;
+      animalSelect.disabled = true;
+      vetSelect.disabled = true;
+      submitBtn.disabled = true;
+    } else {
+      encSelect.disabled = false;
+      animalSelect.disabled = false;
+      vetSelect.disabled = false;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Следим за изменением вольера
+  encSelect.addEventListener('change', updateVetForm);
+  
+  // Запуск при инициализации страницы
+  updateVetForm();
+})();
+</script>
+{% endblock %}

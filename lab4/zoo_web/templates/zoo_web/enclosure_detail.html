@@ -1,0 +1,107 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Вольер: {{ enclosure.get_type }}</h2><span class="hint"><a href="{% url 'enclosures' %}">Назад к списку вольеров</a></span></div>
+  <table><thead><tr><th>Параметр</th><th>Значение</th></tr></thead><tbody>
+    <tr><td>Тип</td><td>{{ enclosure.get_type }}</td></tr>
+    <tr><td>Животных</td><td>{{ enclosure.get_animals|length }}</td></tr>
+    <tr><td>Кормлений</td><td>{{ enclosure.get_feeds|length }}</td></tr>
+  </tbody></table>
+</section>
+<section>
+  <h2>Животные</h2>
+  <table><thead><tr><th>Имя</th><th>Вид</th></tr></thead><tbody>{% for i, a in animals %}<tr><td>{{ a.get_name }}</td><td>{{ a.get_type }}</td></tr>{% empty %}<tr><td colspan="2">Нет животных</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <h2>Кормления</h2>
+  <table><thead><tr><th>Корм</th><th>Дата</th></tr></thead><tbody>{% for i, f in feeds %}<tr><td>{{ f.get_food }}</td><td>{{ f.get_date|date:'d.m.Y H:i' }}</td></tr>{% empty %}<tr><td colspan="2">Нет записей</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <h2>Действия</h2>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить животное</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_animal"><span class="label">Имя:</span><input name="animal_name" required><span class="label">Вид:</span><input name="animal_type" required><button>Добавить</button></form></div>
+    <div class="action-card">
+      <h3>Удалить животное</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="remove_animal">
+        
+        <span class="label">Животное:</span>
+        <select id="remove-animal-select" name="animal_index" required>
+          {% for i, a in animals %}
+          <option value="{{ i }}">{{ a.get_name }} ({{ a.get_type }})</option>
+          {% endfor %}
+        </select>
+        
+        <button id="remove-animal-submit">Удалить</button>
+      </form>
+    </div>
+    <div class="action-card"><h3>Добавить кормление</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="feed_enclosure"><span class="label">Корм:</span><input name="food" required><span class="label">Дата:</span><input name="feed_date" type="datetime-local" required><button>Сохранить</button></form></div>
+    <div class="action-card">
+      <h3>Медосмотр</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="vet_service">
+        
+        <span class="label">Животное:</span>
+        <select id="vet-anim-select" name="animal_index" required>
+          {% for i, a in animals %}
+          <option value="{{ i }}">{{ a.get_name }} ({{ a.get_type }})</option>
+          {% endfor %}
+        </select>
+        
+        <span class="label">Ветеринар:</span>
+        <select id="vet-doc-select" name="vet_index" required>
+          {% for i, label in vet_choices %}
+          <option value="{{ i }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        
+        <button id="vet-exec-submit">Выполнить</button>
+      </form>
+    </div>
+    <div class="action-card"><h3>Очистить журнал</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="clear_feeds"><button {% if not feeds %}disabled{% endif %}>Очистить кормления</button></form></div>
+    <div class="action-card"><h3>Удалить вольер</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_enclosure"><button>Удалить вольер</button></form></div>
+  </div>
+</section>
+<script>
+(function(){
+  const animalSelect = document.getElementById('remove-animal-select');
+  const submitBtn = document.getElementById('remove-animal-submit');
+
+  if (!animalSelect || !submitBtn) return;
+
+  // Проверяем, пуст ли список внутри тега select
+  if (animalSelect.options.length === 0) {
+    animalSelect.disabled = true; // Запрещаем открывать выпадающий список
+    submitBtn.disabled = true;   // Делаем кнопку неактивной
+  } else {
+    animalSelect.disabled = false;
+    submitBtn.disabled = false;
+  }
+})();
+  
+(function(){
+  const animalSelect = document.getElementById('vet-anim-select');
+  const vetSelect = document.getElementById('vet-doc-select');
+  const submitBtn = document.getElementById('vet-exec-submit');
+
+  if (!animalSelect || !vetSelect || !submitBtn) return;
+
+  // Проверяем, пуст ли список животных или список ветеринаров
+  const isAnimalsEmpty = animalSelect.options.length === 0;
+  const isVetsEmpty = vetSelect.options.length === 0;
+
+  // Если ХОТЯ БЫ ОДИН список пуст, полностью блокируем возможность выбора и отправки
+  if (isAnimalsEmpty || isVetsEmpty) {
+    animalSelect.disabled = true;
+    vetSelect.disabled = true;
+    submitBtn.disabled = true;
+  } else {
+    animalSelect.disabled = false;
+    vetSelect.disabled = false;
+    submitBtn.disabled = false;
+  }
+})();
+</script>
+{% endblock %}

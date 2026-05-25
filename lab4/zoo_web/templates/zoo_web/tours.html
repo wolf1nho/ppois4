@@ -1,0 +1,127 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Экскурсии</h2></div>
+  <table><thead><tr><th>Экспозиция</th><th>Гид</th><th>Дата</th><th>Посетители</th></tr></thead><tbody>{% for row in tours %}<tr><td><a href="{% url 'tour_detail' row.index %}">{{ row.exp_name }}</a></td><td>{{ row.guide_name }}</td><td>{{ row.obj.get_date|date:'d.m.Y H:i' }}</td><td>{{ row.obj.get_visitors_count }}/{{ row.obj.get_max_visitors }}</td></tr>{% empty %}<tr><td colspan="4">Нет экскурсий</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <div class="section-head"><h2>Действия</h2></div>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить экскурсию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_tour"><span class="label">Экспозиция:</span><select name="exp_index" required {% if not exposition_choices %}disabled{% endif %}>{% for i, label in exposition_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Гид:</span><select name="guide_index" required {% if not guide_choices %}disabled{% endif %}>{% for i, label in guide_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Лимит:</span><input name="tour_max" type="number" min="1" required {% if not exposition_choices or not guide_choices %}disabled{% endif %}><span class="label">Дата:</span><input name="tour_date" type="datetime-local" required {% if not exposition_choices or not guide_choices %}disabled{% endif %}><button {% if not exposition_choices or not guide_choices %}disabled{% endif %}>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить экскурсию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_tour"><fieldset {% if not tour_choices %}disabled{% endif %}><span class="label">Экскурсия:</span><select name="tour_index" required>{% for i, label in tour_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button>Удалить</button></fieldset></form></div>
+    <div class="action-card"><h3>Изменить дату</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_date"><fieldset {% if not tour_choices %}disabled{% endif %}><span class="label">Экскурсия:</span><select name="tour_index" required>{% for i, label in tour_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Дата:</span><input name="tour_date" type="datetime-local" required><button>Изменить</button></fieldset></form></div>
+    
+    <div class="action-card"><h3>Изменить экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_exposition"><span class="label">Экскурсия:</span><select id="tour-exp-parent" name="tour_index" required {% if not tour_choices %}disabled{% endif %}>{% for i, label in tour_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Новая экспозиция:</span><select id="tour-exp-child" name="exp_index" required {% if not exposition_choices or not tour_choices %}disabled{% endif %}>{% for i, label in exposition_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button {% if not exposition_choices or not tour_choices %}disabled{% endif %}>Изменить</button></form></div>
+    
+    <div class="action-card"><h3>Изменить экскурсовода</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_guide"><span class="label">Экскурсия:</span><select id="tour-guide-parent" name="tour_index" required {% if not tour_choices %}disabled{% endif %}>{% for i, label in tour_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Новый экскурсовод:</span><select id="tour-guide-child" name="guide_index" required {% if not guide_choices or not tour_choices %}disabled{% endif %}>{% for i, label in guide_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button {% if not guide_choices or not tour_choices %}disabled{% endif %}>Изменить</button></form></div>
+    
+    <div class="action-card"><h3>Добавить посетителя</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_visitor_to_tour"><span class="label">Экскурсия:</span><select name="tour_index" required {% if not tour_choices %}disabled{% endif %}>{% for i, label in tour_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Имя:</span><input name="vis_name" required {% if not tour_choices %}disabled{% endif %}><span class="label">Год:</span><input name="vis_birth" type="number" required {% if not tour_choices %}disabled{% endif %}><span class="label">Пол:</span><input name="vis_sex" required {% if not tour_choices %}disabled{% endif %}><button {% if not tour_choices %}disabled{% endif %}>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить посетителя</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_visitor_from_tour"><fieldset {% if not tours_with_visitors %}disabled{% endif %}><span class="label">Экскурсия:</span><select id="tour-remove-parent" name="tour_index" required>{% for row in tours_with_visitors %}<option value="{{ row.tour_index }}">{{ row.tour_label }}</option>{% endfor %}</select><span class="label">Посетитель:</span><select id="tour-remove-child" name="vis_index" required>{% for row in tours_with_visitors %}{% for visitor in row.visitors %}<option value="{{ visitor.vis_index }}" data-parent="{{ row.tour_index }}">{{ visitor.label }}</option>{% endfor %}{% endfor %}</select><button id="tour-remove-submit">Удалить</button></fieldset></form></div>
+  </div>
+</section>
+
+{{ tour_current_data|json_script:"tour-data" }}
+{{ exp_index_to_id|json_script:"exp-map" }}
+{{ guide_index_to_id|json_script:"guide-map" }}
+
+<script>
+(function(){
+  // 1. Существующий скрипт удаления посетителей
+  const p=document.getElementById('tour-remove-parent');const c=document.getElementById('tour-remove-child');const b=document.getElementById('tour-remove-submit');if(p&&c&&b){const o=Array.from(c.options);function s(){const v=p.value;let firstIdx=-1;o.forEach((x,idx)=>{const ok=x.dataset.parent===v;x.hidden=!ok;if(ok&&firstIdx===-1)firstIdx=idx;});if(firstIdx!==-1){c.disabled=false;b.disabled=false;c.selectedIndex=firstIdx;}else{c.disabled=true;b.disabled=true;c.selectedIndex=-1;}}p.addEventListener('change',s);s();}
+
+  // Загрузка JSON-данных, сгенерированных во views.py
+  const toursDataEl = document.getElementById('tour-data');
+  if (!toursDataEl) return; 
+  
+  const tours = JSON.parse(toursDataEl.textContent);
+  const indexToExpId = JSON.parse(document.getElementById('exp-map').textContent);
+  const indexToGuideId = JSON.parse(document.getElementById('guide-map').textContent);
+
+  // Helper функция для управления доступностью элементов формы
+  function toggleFormState(selectEl, visibleCount) {
+    const form = selectEl.form;
+    const submitBtn = form ? form.querySelector('button') : null;
+    
+    if (visibleCount === 0) {
+      selectEl.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
+    } else {
+      // Разблокируем только если изначально в Django этот селект не был заблокирован глобально
+      selectEl.disabled = false;
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  }
+
+  // 2. Скрытие текущей экспозиции + блокировка списка
+  const expParent = document.getElementById('tour-exp-parent');
+  const expChild = document.getElementById('tour-exp-child');
+  if (expParent && expChild) {
+    const options = Array.from(expChild.options);
+    function filterExpositions() {
+      const tourIdx = expParent.value;
+      const currentExpId = tours[tourIdx]?.exp_id;
+      let firstVisibleIdx = -1;
+      let visibleCount = 0;
+
+      options.forEach((opt, idx) => {
+        const optionExpId = indexToExpId[opt.value];
+        const isCurrent = optionExpId === currentExpId;
+        opt.hidden = isCurrent; 
+        if (isCurrent) {
+          opt.style.display = 'none'; 
+        } else {
+          opt.style.display = '';
+          visibleCount++;
+          if (firstVisibleIdx === -1) firstVisibleIdx = idx;
+        }
+      });
+
+      // Переключаем выбранный пункт на доступный
+      if (expChild.selectedIndex === -1 || expChild.options[expChild.selectedIndex].style.display === 'none') {
+        expChild.selectedIndex = firstVisibleIdx;
+      }
+
+      // Блокируем или активируем список в зависимости от количества оставшихся элементов
+      toggleFormState(expChild, visibleCount);
+    }
+    expParent.addEventListener('change', filterExpositions);
+    filterExpositions();
+  }
+
+  // 3. Скрытие текущего экскурсовода + блокировка списка
+  const guideParent = document.getElementById('tour-guide-parent');
+  const guideChild = document.getElementById('tour-guide-child');
+  if (guideParent && guideChild) {
+    const options = Array.from(guideChild.options);
+    function filterGuides() {
+      const tourIdx = guideParent.value;
+      const currentGuideId = tours[tourIdx]?.guide_id;
+      let firstVisibleIdx = -1;
+      let visibleCount = 0;
+
+      options.forEach((opt, idx) => {
+        const optionGuideId = indexToGuideId[opt.value];
+        const isCurrent = optionGuideId === currentGuideId;
+        opt.hidden = isCurrent;
+        if (isCurrent) {
+          opt.style.display = 'none';
+        } else {
+          opt.style.display = '';
+          visibleCount++;
+          if (firstVisibleIdx === -1) firstVisibleIdx = idx;
+        }
+      });
+
+      if (guideChild.selectedIndex === -1 || guideChild.options[guideChild.selectedIndex].style.display === 'none') {
+        guideChild.selectedIndex = firstVisibleIdx;
+      }
+
+      // Блокируем или активируем список в зависимости от количества оставшихся элементов
+      toggleFormState(guideChild, visibleCount);
+    }
+    guideParent.addEventListener('change', filterGuides);
+    filterGuides();
+  }
+})();
+</script> 
+{% endblock %}

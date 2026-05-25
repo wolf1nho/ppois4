@@ -104,6 +104,12 @@
             "vet id": 10,
             "conclusion": "болен",
             "date": "06.03.2026 00:02:30"
+        },
+        {
+            "animal id": 3,
+            "vet id": 10,
+            "conclusion": "здоров",
+            "date": "25.05.2026 00:35:17"
         }
     ],
     "guides": [

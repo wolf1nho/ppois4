@@ -1,0 +1,166 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Список медосмотров</h2><span class="hint">Журнал осмотров и лечений животных</span></div>
+  <table>
+    <thead><tr><th>Животное</th><th>Ветеринар</th><th>Дата</th><th>Заключение</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.animal }}</td>
+        <td>{{ row.vet }}</td>
+        <td>{{ row.date|date:'d.m.Y H:i' }}</td>
+        <td>{{ row.conclusion }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">Медосмотров пока нет</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+<section>
+  <div class="actions-grid">
+    <div class="action-card">
+      <h3>Выполнить медосмотр</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="vet_service">
+        
+        <span class="label">Вольер:</span>
+        <select id="vet-logs-enc" name="enc_index" required {% if not enclosures_with_animals %}disabled{% endif %}>
+          {% for row in enclosures_with_animals %}
+          <option value="{{ row.enc_index }}">{{ row.enc_label }}</option>
+          {% endfor %}
+        </select>
+        
+        <span class="label">Животное:</span>
+        <select id="vet-logs-animal" name="animal_index" required {% if not enclosures_with_animals %}disabled{% endif %}>
+          {% for row in enclosures_with_animals %}
+            {% for animal in row.animals %}
+            <option value="{{ animal.animal_index }}" data-parent="{{ row.enc_index }}">{{ animal.label }}</option>
+            {% endfor %}
+          {% endfor %}
+        </select>
+        
+        <span class="label">Ветеринар:</span>
+        <select id="vet-logs-vet" name="vet_index" required {% if not vet_choices %}disabled{% endif %}>
+          {% for i, label in vet_choices %}
+          <option value="{{ i }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        
+        <button id="vet-logs-submit" data-has-vets="{% if vet_choices %}1{% else %}0{% endif %}" {% if not enclosures_with_animals or not vet_choices %}disabled{% endif %}>Выполнить</button>
+      </form>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="actions-grid">
+    <div class="action-card">
+      <h3>Очистить журнал медосмотров</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_vet_logs">
+        <button {% if not rows %}disabled{% endif %}>Очистить</button>
+      </form>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  const p=document.getElementById('vet-logs-enc');
+  const c=document.getElementById('vet-logs-animal');
+  const b=document.getElementById('vet-logs-submit');
+  if(!p||!c||!b) return;
+  const opts=Array.from(c.options);
+  const hasVets=b.dataset.hasVets==='1';
+  function sync(){
+    const v=p.value;
+    let firstIdx=-1;
+    opts.forEach((o,idx)=>{
+      const ok=o.dataset.parent===v;
+      o.hidden=!ok;
+      if(ok && firstIdx===-1) firstIdx=idx;
+    });
+    if(firstIdx!==-1){
+      c.disabled=false;
+      b.disabled=!hasVets;
+      c.selectedIndex=firstIdx;
+    } else {
+      c.disabled=true;
+      b.disabled=true;
+      c.selectedIndex=-1;
+    }
+  }
+  p.addEventListener('change', sync);
+  sync();
+})();
+</script>
+
+<script>
+(function(){
+  const encSelect = document.getElementById('vet-logs-enc');
+  const animalSelect = document.getElementById('vet-logs-animal');
+  const vetSelect = document.getElementById('vet-logs-vet');
+  const submitBtn = document.getElementById('vet-logs-submit');
+
+  // Если базовые элементы не найдены — прекращаем работу скрипта
+  if (!encSelect || !animalSelect || !vetSelect || !submitBtn) return;
+
+  const animalOptions = Array.from(animalSelect.options);
+  const hasVets = submitBtn.dataset.hasVets === "1";
+
+  function updateVetForm() {
+    const selectedEnc = encSelect.value;
+    let visibleAnimalsCount = 0;
+    let firstVisibleAnimalIdx = -1;
+
+    // 1. Фильтруем список животных в зависимости от выбранного вольера
+    animalOptions.forEach((option, idx) => {
+      const isMatch = option.dataset.parent === selectedEnc;
+      option.hidden = !isMatch;
+      
+      if (isMatch) {
+        option.style.display = '';
+        visibleAnimalsCount++;
+        if (firstVisibleAnimalIdx === -1) firstVisibleAnimalIdx = idx;
+      } else {
+        option.style.display = 'none';
+      }
+    });
+
+    // 2. Управляем фокусом/выбором в списке животных
+    if (firstVisibleAnimalIdx != -1) {
+      animalSelect.selectedIndex = firstVisibleAnimalIdx;
+    } else {
+      animalSelect.selectedIndex = -1;
+    }
+
+    // 3. Главная проверка: если ХОТЯ БЫ ОДИН список пуст — блокируем всё
+    const isEncEmpty = encSelect.options.length === 0;
+    const isAnimalEmpty = visibleAnimalsCount === 0;
+    const isVetEmpty = !hasVets;
+
+    if (isEncEmpty || isAnimalEmpty || isVetEmpty) {
+      // Блокируем выпадающие списки, чтобы их нельзя было открыть
+      encSelect.disabled = true;
+      animalSelect.disabled = true;
+      vetSelect.disabled = true;
+      submitBtn.disabled = true;
+    } else {
+      // Если везде есть элементы — открываем доступ
+      encSelect.disabled = false;
+      animalSelect.disabled = false;
+      vetSelect.disabled = false;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Навешиваем событие изменения вольера
+  encSelect.addEventListener('change', updateVetForm);
+  
+  // Запускаем первичную проверку при загрузке страницы
+  updateVetForm();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Мероприятие: {{ event.get_name }}</h2><span class="hint"><a href="{% url 'events' %}">Назад к мероприятиям</a></span></div>
+  <table><thead><tr><th>Параметр</th><th>Значение</th></tr></thead><tbody><tr><td>Название</td><td>{{ event.get_name }}</td></tr><tr><td>Описание</td><td>{{ event.get_description }}</td></tr><tr><td>Дата</td><td>{{ event.get_date|date:'d.m.Y H:i' }}</td></tr><tr><td>Посетители</td><td>{{ event.get_visitors_count }}/{{ event.get_max_visitors }}</td></tr></tbody></table>
+</section>
+<section>
+  <h2>Посетители</h2>
+  <table><thead><tr><th>Имя</th><th>Год рождения</th><th>Пол</th></tr></thead><tbody>{% for i, v in visitors %}<tr><td>{{ v.get_name }}</td><td>{{ v.get_birth_year }}</td><td>{{ v.get_gender_description }}</td></tr>{% empty %}<tr><td colspan="3">Посетителей нет</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <h2>Действия</h2>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Изменить дату</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_event_date"><span class="label">Дата:</span><input name="event_date" type="datetime-local" required><button>Изменить</button></form></div>
+    <div class="action-card"><h3>Добавить посетителя</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_visitor"><span class="label">Имя:</span><input name="vis_name" required><span class="label">Год:</span><input name="vis_birth" type="number" required><span class="label">Пол:</span><input name="vis_sex" required><button>Добавить</button></form></div>
+    <div class="action-card">
+      <h3>Удалить посетителя</h3>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="remove_visitor">
+        
+        <span class="label">Посетитель:</span>
+        <select id="remove-vis-select" name="vis_index" required>
+          {% for i, v in visitors %}
+          <option value="{{ i }}">{{ v.get_name }}</option>
+          {% endfor %}
+        </select>
+        
+        <button id="remove-vis-submit">Удалить</button>
+      </form>
+    </div>
+    <div class="action-card"><h3>Удалить мероприятие</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_event"><button>Удалить мероприятие</button></form></div>
+  </div>
+</section>
+<script>
+(function(){
+  const visSelect = document.getElementById('remove-vis-select');
+  const submitBtn = document.getElementById('remove-vis-submit');
+
+  if (!visSelect || !submitBtn) return;
+
+  // Проверяем, есть ли элементы внутри выпадающего списка
+  if (visSelect.options.length === 0) {
+    visSelect.disabled = true;  // Блокируем список, закрывая возможность клика
+    submitBtn.disabled = true;  // Блокируем кнопку отправки
+  } else {
+    visSelect.disabled = false;
+    submitBtn.disabled = false;
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Экспозиции</h2></div>
+  <table><thead><tr><th>Название</th><th>Описание</th><th>Вольеров</th></tr></thead><tbody>{% for i, exp in expositions %}<tr><td><a href="{% url 'exposition_detail' i %}">{{ exp.get_name }}</a></td><td>{{ exp.get_description }}</td><td>{{ exp.get_enclosure_ids|length }}</td></tr>{% empty %}<tr><td colspan="3">Нет экспозиций</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <div class="section-head"><h2>Действия</h2></div>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_exposition"><span class="label">Название:</span><input name="exp_name" required><span class="label">Описание:</span><input name="exp_desc" required><button>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_exposition"><fieldset {% if not exposition_choices %}disabled{% endif %}><span class="label">Экспозиция:</span><select name="exp_index" required>{% for i, label in exposition_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button>Удалить</button></fieldset></form></div>
+    <div class="action-card"><h3>Добавить вольер в экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_enclosure_to_exposition"><span class="label">Экспозиция:</span><select id="exp-add-parent" name="exp_index" required {% if not expositions_with_available_enclosures %}disabled{% endif %}>{% for row in expositions_with_available_enclosures %}<option value="{{ row.exp_index }}">{{ row.exp_label }}</option>{% endfor %}</select><span class="label">Вольер:</span><select id="exp-add-child" name="enc_index" required {% if not expositions_with_available_enclosures %}disabled{% endif %}>{% for row in expositions_with_available_enclosures %}{% for enclosure in row.enclosures %}<option value="{{ enclosure.enc_index }}" data-parent="{{ row.exp_index }}">{{ enclosure.label }}</option>{% endfor %}{% endfor %}</select><button id="exp-add-submit" {% if not expositions_with_available_enclosures %}disabled{% endif %}>Добавить</button></form></div>
+    <div class="action-card"><h3>Убрать вольер из экспозиции</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_enclosure_from_exposition"><span class="label">Экспозиция:</span><select id="exp-remove-parent" name="exp_index" required {% if not expositions_with_enclosures %}disabled{% endif %}>{% for row in expositions_with_enclosures %}<option value="{{ row.exp_index }}">{{ row.exp_label }}</option>{% endfor %}</select><span class="label">Вольер:</span><select id="exp-remove-child" name="enc_pos" required {% if not expositions_with_enclosures %}disabled{% endif %}>{% for row in expositions_with_enclosures %}{% for enclosure in row.enclosures %}<option value="{{ enclosure.enc_pos }}" data-parent="{{ row.exp_index }}">{{ enclosure.label }}</option>{% endfor %}{% endfor %}</select><button id="exp-remove-submit" {% if not expositions_with_enclosures %}disabled{% endif %}>Убрать</button></form></div>
+  </div>
+</section>
+<script>
+(function(){
+  function bind(pId,cId,bId){
+    const p=document.getElementById(pId),c=document.getElementById(cId),b=document.getElementById(bId);
+    if(!p||!c||!b) return;
+    const all=Array.from(c.options).map(o=>({value:o.value,text:o.text,parent:o.dataset.parent}));
+    function sync(){
+      const v=p.value;
+      const filtered=all.filter(o=>o.parent===v);
+      c.innerHTML='';
+      filtered.forEach(o=>{
+        const opt=document.createElement('option');
+        opt.value=o.value;
+        opt.textContent=o.text;
+        c.appendChild(opt);
+      });
+      const has=filtered.length>0;
+      c.disabled=!has;
+      b.disabled=!has;
+      if(!has) c.selectedIndex=-1;
+    }
+    p.addEventListener('change', sync);
+    sync();
+  }
+  bind('exp-add-parent','exp-add-child','exp-add-submit');
+  bind('exp-remove-parent','exp-remove-child','exp-remove-submit');
+})();
+</script>
+{% endblock %}

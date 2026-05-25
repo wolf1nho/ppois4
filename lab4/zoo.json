@@ -1,0 +1,39 @@
+{
+    "name": "Zooland",
+    "enclosures": [
+        {
+            "type": "Обезьяны",
+            "animals": [],
+            "feeds": [],
+            "id": 36
+        }
+    ],
+    "vets": [],
+    "vet logs": [],
+    "guides": [
+        {
+            "name": "Рассел",
+            "languages": "русский",
+            "id": 30
+        }
+    ],
+    "expositions": [
+        {
+            "name": "мк",
+            "description": "цмс",
+            "enclosure ids": [],
+            "id": 26
+        }
+    ],
+    "tours": [
+        {
+            "exposition id": 26,
+            "tour guide id": 30,
+            "date": "25.05.2026 01:33",
+            "visitors": [],
+            "max visitors": 2
+        }
+    ],
+    "events": [],
+    "id counter": 36
+}

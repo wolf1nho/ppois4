@@ -253,6 +253,7 @@ class ZooMenu:
             print("2 - Добавить ветеринара")
             print("3 - Удалить ветеринара")
             print("4 - Просмотр записей медосмотров/лечений")
+            print("5 - Очистить записи медосмотров/лечений")
             print("0 - Назад")
 
             user_choice = input("Выбор: ")
@@ -265,6 +266,9 @@ class ZooMenu:
                     self.remove_vet()
                 case "4":
                     self.show_vet_logs()
+                case "5":
+                    self.zoo.clear_vet_logs()
+                    print("Записи удалены.")
                 case "0":
                     break
                 case _:
@@ -636,9 +640,10 @@ class ZooMenu:
             print("1 - Список посетителей")
             print(f"2 - Добавить посетителя ({tour.get_visitors_count()}/{tour.get_max_visitors()})")
             print("3 - Удалить посетителя")
-            print("4 - Перенести экскурсию")
-            print("5 - Изменить экспозицию")
-            print("6 - Удалить мероприятие")
+            print("4 - Cменить экскурсовода")
+            print("5 - Перенести экскурсию")
+            print("6 - Изменить экспозицию")
+            print("7 - Удалить мероприятие")
             print("0 - Назад")
             
             user_choice = input("Выберите операцию: ")
@@ -650,6 +655,8 @@ class ZooMenu:
                 case "3":    
                     self.remove_visitor_from_tour(tour)
                 case "4":
+                    self.change_tour_guide(tour)
+                case "5":
                     self.change_tour_date(tour)
                 case "5":
                     self.change_exposition(tour)
@@ -682,6 +689,28 @@ class ZooMenu:
             print("Ошибка")
         except ValueError:
             print("Введите число!")
+
+    def change_tour_guide(self, tour: Tour):
+        other_guides = self.zoo.get_guides()
+        for guide in other_guides:
+            if guide.get_id() == tour.get_tour_guide_id():
+                other_guides.remove(guide)
+                break
+        if not other_guides:
+            print("Ошибка. Другие экскурсоводы отсутствуют")
+            return
+        
+        for i, guide in enumerate(other_guides, start=1):
+            info = f"Экскурсовод: {guide.get_name()}"
+            info += f"Языки: {guide.get_languages()}\n"
+            print(f"{i}. {info}")
+
+        i = int(input("Введите номер для добавления: "))
+        if 0 <= i-1 < len(other_guides):
+            guide = other_guides[i-1]
+            tour.change_tour_guide_id(guide.get_id())
+        else:
+            print("Oшибка")
 
     def change_tour_date(self, tour: Event):
         date_str = input("Дата и время (ДД.ММ.ГГГГ ЧЧ:ММ): ")

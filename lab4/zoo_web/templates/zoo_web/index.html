@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zoo Django</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --line: #d9e1ec;
+      --text: #1f2a37;
+      --accent: #0f766e;
+      --accent-soft: #e6f6f4;
+      --danger: #b00020;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    h1 { margin: 10px 0 16px; }
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(246, 248, 251, 0.95);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 0;
+      margin-bottom: 16px;
+    }
+    .topnav .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .topnav a {
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: #fff;
+      font-size: 14px;
+    }
+    .topnav a:hover { border-color: var(--accent); color: var(--accent); }
+    section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      scroll-margin-top: 90px;
+    }
+    h2 { margin-top: 0; }
+    .list { margin-bottom: 10px; }
+    .row { padding: 6px 0; border-bottom: 1px dashed #eef2f7; }
+    .row:last-child { border-bottom: 0; }
+    form {
+      margin: 8px 0;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input, select, button {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+    button {
+      background: var(--accent-soft);
+      border-color: #b5e3dd;
+      cursor: pointer;
+    }
+    .error { color: var(--danger); margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>{{ zoo.get_name }}</h1>
+
+    <div class="topnav">
+      <div class="links">
+        <a href="#enclosures">Вольеры</a>
+        <a href="#staff">Коллектив</a>
+        <a href="#expositions">Экспозиции</a>
+        <a href="#tours">Экскурсии</a>
+        <a href="#events">Мероприятия</a>
+      </div>
+    </div>
+
+    {% if error %}<p class="error">Ошибка: {{ error }}</p>{% endif %}
+
+    <section id="enclosures">
+      <h2>Вольеры</h2>
+      <div class="list">
+      {% for i, enc in enclosures %}
+        <div class="row"><b>#{{ i }}</b> {{ enc.get_type }} | животных: {{ enc.get_animals|length }} | кормлений: {{ enc.get_feeds|length }}</div>
+      {% empty %}<div class="row">Нет вольеров</div>{% endfor %}
+      </div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_enclosure"><input name="enc_type" placeholder="тип" required><button>Добавить вольер</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_enclosure"><input name="enc_index" type="number" min="0" placeholder="индекс" required><button>Удалить вольер</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_animal"><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><input name="animal_name" placeholder="имя" required><input name="animal_type" placeholder="вид" required><button>Добавить животное</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_animal"><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><input name="animal_index" type="number" min="0" placeholder="индекс животного" required><button>Удалить животное</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="feed_enclosure"><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><input name="food" placeholder="корм" required><input name="feed_date" type="datetime-local" required><button>Покормить</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="clear_feeds"><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><button>Очистить кормления</button></form>
+    </section>
+
+    <section id="staff">
+      <h2>Коллектив</h2>
+      <h3>Ветеринары</h3>
+      <div class="list">{% for i, vet in vets %}<div class="row">#{{ i }} {{ vet.get_name }} ({{ vet.get_specialisation }})</div>{% empty %}<div class="row">Нет ветеринаров</div>{% endfor %}</div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_vet"><input name="vet_name" placeholder="имя" required><input name="vet_spec" placeholder="специализация" required><button>Добавить ветеринара</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_vet"><input name="vet_index" type="number" min="0" placeholder="индекс" required><button>Удалить ветеринара</button></form>
+      <h3>Экскурсоводы</h3>
+      <div class="list">{% for i, guide in guides %}<div class="row">#{{ i }} {{ guide.get_name }} ({{ guide.get_languages }})</div>{% empty %}<div class="row">Нет экскурсоводов</div>{% endfor %}</div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_guide"><input name="guide_name" placeholder="имя" required><input name="guide_langs" placeholder="языки" required><button>Добавить экскурсовода</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_guide"><input name="guide_index" type="number" min="0" placeholder="индекс" required><button>Удалить экскурсовода</button></form>
+      <h3>Медосмотр</h3>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="vet_service"><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><input name="animal_index" type="number" min="0" placeholder="индекс животного" required><input name="vet_index" type="number" min="0" placeholder="индекс ветеринара" required><button>Выполнить</button></form>
+    </section>
+
+    <section id="expositions">
+      <h2>Экспозиции</h2>
+      <div class="list">{% for i, exp in expositions %}<div class="row">#{{ i }} {{ exp.get_name }} (вольеров: {{ exp.get_enclosure_ids|length }})</div>{% empty %}<div class="row">Нет экспозиций</div>{% endfor %}</div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_exposition"><input name="exp_name" placeholder="название" required><input name="exp_desc" placeholder="описание" required><button>Добавить экспозицию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_exposition"><input name="exp_index" type="number" min="0" placeholder="индекс" required><button>Удалить экспозицию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_enclosure_to_exposition"><input name="exp_index" type="number" min="0" placeholder="индекс экспозиции" required><input name="enc_index" type="number" min="0" placeholder="индекс вольера" required><button>Добавить вольер в экспозицию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_enclosure_from_exposition"><input name="exp_index" type="number" min="0" placeholder="индекс экспозиции" required><input name="enc_pos" type="number" min="0" placeholder="позиция в списке" required><button>Убрать вольер из экспозиции</button></form>
+    </section>
+
+    <section id="tours">
+      <h2>Экскурсии</h2>
+      <div class="list">{% for i, tour in tours %}<div class="row">#{{ i }} exp_id={{ tour.get_exposition_id }} guide_id={{ tour.get_tour_guide_id }} дата={{ tour.get_date|date:'d.m.Y H:i' }} посетителей: {{ tour.get_visitors_count }}/{{ tour.get_max_visitors }}</div>{% empty %}<div class="row">Нет экскурсий</div>{% endfor %}</div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_tour"><input name="exp_index" type="number" min="0" placeholder="индекс экспозиции" required><input name="guide_index" type="number" min="0" placeholder="индекс экскурсовода" required><input name="tour_max" type="number" min="1" placeholder="макс посетителей" required><input name="tour_date" type="datetime-local" required><button>Добавить экскурсию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_tour"><input name="tour_index" type="number" min="0" placeholder="индекс" required><button>Удалить экскурсию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_date"><input name="tour_index" type="number" min="0" placeholder="индекс" required><input name="tour_date" type="datetime-local" required><button>Изменить дату экскурсии</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_tour_exposition"><input name="tour_index" type="number" min="0" placeholder="индекс экскурсии" required><input name="exp_index" type="number" min="0" placeholder="новая экспозиция" required><button>Сменить экспозицию</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_visitor_to_tour"><input name="tour_index" type="number" min="0" placeholder="индекс экскурсии" required><input name="vis_name" placeholder="имя" required><input name="vis_birth" type="number" placeholder="год рождения" required><input name="vis_sex" placeholder="м/ж" required><button>Добавить посетителя</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_visitor_from_tour"><input name="tour_index" type="number" min="0" placeholder="индекс экскурсии" required><input name="vis_index" type="number" min="0" placeholder="индекс посетителя" required><button>Удалить посетителя</button></form>
+    </section>
+
+    <section id="events">
+      <h2>Мероприятия</h2>
+      <div class="list">{% for i, event in events %}<div class="row">#{{ i }} {{ event.get_name }} дата={{ event.get_date|date:'d.m.Y H:i' }} посетителей: {{ event.get_visitors_count }}/{{ event.get_max_visitors }}</div>{% empty %}<div class="row">Нет мероприятий</div>{% endfor %}</div>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_event"><input name="event_name" placeholder="название" required><input name="event_desc" placeholder="описание" required><input name="event_max" type="number" min="1" placeholder="макс" required><input name="event_date" type="datetime-local" required><button>Добавить мероприятие</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_event"><input name="event_index" type="number" min="0" placeholder="индекс" required><button>Удалить мероприятие</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="change_event_date"><input name="event_index" type="number" min="0" placeholder="индекс" required><input name="event_date" type="datetime-local" required><button>Изменить дату</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_visitor_to_event"><input name="event_index" type="number" min="0" placeholder="индекс мероприятия" required><input name="vis_name" placeholder="имя" required><input name="vis_birth" type="number" placeholder="год рождения" required><input name="vis_sex" placeholder="м/ж" required><button>Добавить посетителя</button></form>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_visitor_from_event"><input name="event_index" type="number" min="0" placeholder="индекс мероприятия" required><input name="vis_index" type="number" min="0" placeholder="индекс посетителя" required><button>Удалить посетителя</button></form>
+    </section>
+  </div>
+</body>
+</html>

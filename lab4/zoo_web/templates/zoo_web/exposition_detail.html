@@ -1,0 +1,19 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Экспозиция: {{ exposition.get_name }}</h2><span class="hint"><a href="{% url 'expositions' %}">Назад к списку экспозиций</a></span></div>
+  <table><thead><tr><th>Параметр</th><th>Значение</th></tr></thead><tbody><tr><td>Название</td><td>{{ exposition.get_name }}</td></tr><tr><td>Описание</td><td>{{ exposition.get_description }}</td></tr><tr><td>Вольеров</td><td>{{ exposition.get_enclosure_ids|length }}</td></tr></tbody></table>
+</section>
+<section>
+  <h2>Вольеры в экспозиции</h2>
+  <table><thead><tr><th>Тип</th><th>Животных</th></tr></thead><tbody>{% for enc_index, enc in attached_enclosures %}<tr><td><a href="{% url 'enclosure_detail' enc_index %}">{{ enc.get_type }}</a></td><td>{{ enc.get_animals|length }}</td></tr>{% empty %}<tr><td colspan="2">Вольеров нет</td></tr>{% endfor %}</tbody></table>
+</section>
+<section>
+  <h2>Действия</h2>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить вольер</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_enclosure"><fieldset {% if not available_enclosures %}disabled{% endif %}><span class="label">Вольер:</span><select name="enc_index" required>{% for i, enc in available_enclosures %}<option value="{{ i }}">{{ enc.get_type }} (животных: {{ enc.get_animals|length }})</option>{% endfor %}</select><button>Добавить</button></fieldset></form></div>
+    <div class="action-card"><h3>Убрать вольер</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_enclosure"><fieldset {% if not attached_enclosures %}disabled{% endif %}><span class="label">Вольер:</span><select name="enc_pos" required>{% for i, enc in attached_enclosures %}<option value="{{ forloop.counter0 }}">{{ enc.get_type }}</option>{% endfor %}</select><button>Убрать</button></fieldset></form></div>
+    <div class="action-card"><h3>Удалить экспозицию</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="delete_exposition"><button>Удалить экспозицию</button></form></div>
+  </div>
+</section>
+{% endblock %}

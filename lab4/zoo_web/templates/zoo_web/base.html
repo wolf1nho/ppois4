@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zoo Django</title>
+  <style>
+    :root { --bg:#f4f7fb; --card:#fff; --line:#d9e1ec; --text:#1f2a37; --accent:#0f766e; --danger:#b00020; --muted:#6b7280; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    h1 { margin: 10px 0 16px; }
+    h2 { margin: 0 0 12px; }
+    h3 { margin: 0 0 8px; font-size: 16px; }
+    .topnav { position: sticky; top: 0; z-index: 10; background: rgba(244,247,251,.95); border-bottom: 1px solid var(--line); padding: 10px 0; margin-bottom: 16px; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .links a { text-decoration: none; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); background: #fff; font-size: 14px; }
+    .links a.active, .links a:hover { border-color: var(--accent); color: var(--accent); }
+
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+    .hint { color: var(--muted); font-size: 13px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid #e9eef5; text-align: left; padding: 10px 8px; vertical-align: top; }
+    th { background: #f9fbfd; font-weight: 600; }
+
+    .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+    .action-card { border: 1px solid #e5ebf3; border-radius: 12px; padding: 12px; background: #fcfdff; }
+    form { margin: 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    fieldset { border: 0; margin: 0; padding: 0; min-inline-size: 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .label { font-size: 13px; color: #4b5563; }
+    input, select, button { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; background: #fff; }
+    button { cursor: pointer; }
+    .error { color: var(--danger); margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>{{ zoo.get_name }}</h1>
+    <div class="topnav">
+      <div class="links">
+        <a href="{% url 'enclosures' %}" class="{% if page == 'enclosures' %}active{% endif %}">Вольеры</a>
+        <a href="{% url 'staff' %}" class="{% if page == 'staff' %}active{% endif %}">Коллектив</a>
+        <a href="{% url 'vet_logs' %}" class="{% if page == 'vet_logs' %}active{% endif %}">Медосмотры</a>
+        <a href="{% url 'expositions' %}" class="{% if page == 'expositions' %}active{% endif %}">Экспозиции</a>
+        <a href="{% url 'tours' %}" class="{% if page == 'tours' %}active{% endif %}">Экскурсии</a>
+        <a href="{% url 'events' %}" class="{% if page == 'events' %}active{% endif %}">Мероприятия</a>
+      </div>
+    </div>
+    {% if error %}<p class="error">Ошибка: {{ error }}</p>{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

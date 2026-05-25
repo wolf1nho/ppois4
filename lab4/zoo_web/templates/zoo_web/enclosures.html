@@ -1,0 +1,27 @@
+{% extends 'zoo_web/base.html' %}
+{% block content %}
+<section>
+  <div class="section-head"><h2>Вольеры</h2><span class="hint">Таблица текущих вольеров</span></div>
+  <table>
+    <thead><tr><th>Тип</th><th>Животных</th><th>Кормлений</th></tr></thead>
+    <tbody>
+      {% for i, enc in enclosures %}<tr><td><a href="{% url 'enclosure_detail' i %}">{{ enc.get_type }}</a></td><td>{{ enc.get_animals|length }}</td><td>{{ enc.get_feeds|length }}</td></tr>{% empty %}<tr><td colspan="3">Нет вольеров</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <div class="section-head"><h2>Действия</h2><span class="hint">Управление вольерами и животными</span></div>
+  <div class="actions-grid">
+    <div class="action-card"><h3>Добавить вольер</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_enclosure"><span class="label">Тип:</span><input name="enc_type" required><button>Добавить</button></form></div>
+    <div class="action-card"><h3>Удалить вольер</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_enclosure"><fieldset {% if not enclosure_choices %}disabled{% endif %}><span class="label">Вольер:</span><select name="enc_index" required>{% for i, label in enclosure_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button>Удалить</button></fieldset></form></div>
+    <div class="action-card"><h3>Добавить животное</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_animal"><fieldset {% if not enclosure_choices %}disabled{% endif %}><span class="label">Вольер:</span><select name="enc_index" required>{% for i, label in enclosure_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Имя:</span><input name="animal_name" required><span class="label">Вид:</span><input name="animal_type" required><button>Добавить</button></fieldset></form></div>
+    <div class="action-card"><h3>Удалить животное</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_animal"><fieldset {% if not enclosures_with_animals %}disabled{% endif %}><span class="label">Вольер:</span><select id="remove-animal-enc" name="enc_index" required>{% for row in enclosures_with_animals %}<option value="{{ row.enc_index }}">{{ row.enc_label }}</option>{% endfor %}</select><span class="label">Животное:</span><select id="remove-animal-animal" name="animal_index" required>{% for row in enclosures_with_animals %}{% for animal in row.animals %}<option value="{{ animal.animal_index }}" data-parent="{{ row.enc_index }}">{{ animal.label }}</option>{% endfor %}{% endfor %}</select><button id="remove-animal-submit">Удалить</button></fieldset></form></div>
+    <div class="action-card"><h3>Покормить</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="feed_enclosure"><fieldset {% if not enclosure_choices %}disabled{% endif %}><span class="label">Вольер:</span><select id="feed-enc" name="enc_index" required>{% for i, label in enclosure_choices %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><span class="label">Корм:</span><input name="food" required><span class="label">Дата:</span><input name="feed_date" type="datetime-local" required><button id="feed-submit">Сохранить</button></fieldset></form></div>
+    <div class="action-card"><h3>Очистить журнал кормлений</h3><form method="post">{% csrf_token %}<input type="hidden" name="action" value="clear_feeds"><fieldset {% if not clearable_feed_enclosures %}disabled{% endif %}><span class="label">Вольер:</span><select name="enc_index" required>{% for i, label in clearable_feed_enclosures %}<option value="{{ i }}">{{ label }}</option>{% endfor %}</select><button>Очистить</button></fieldset></form></div>
+  </div>
+</section>
+<script>
+(function(){const p=document.getElementById('remove-animal-enc');const c=document.getElementById('remove-animal-animal');const b=document.getElementById('remove-animal-submit');if(!p||!c||!b)return;const o=Array.from(c.options);function s(){const v=p.value;let firstIdx=-1;o.forEach((x,idx)=>{const ok=x.dataset.parent===v;x.hidden=!ok;if(ok&&firstIdx===-1)firstIdx=idx;});if(firstIdx!==-1){c.disabled=false;b.disabled=false;c.selectedIndex=firstIdx;}else{c.disabled=true;b.disabled=true;c.selectedIndex=-1;}}p.addEventListener('change',s);s();})();
+</script>
+{% endblock %}
