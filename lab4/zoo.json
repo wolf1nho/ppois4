@@ -6,6 +6,12 @@
             "animals": [],
             "feeds": [],
             "id": 36
+        },
+        {
+            "type": "vbrdxfv",
+            "animals": [],
+            "feeds": [],
+            "id": 37
         }
     ],
     "vets": [],
@@ -35,5 +41,5 @@
         }
     ],
     "events": [],
-    "id counter": 36
+    "id counter": 37
 }
